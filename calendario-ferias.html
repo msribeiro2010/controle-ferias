@@ -24,32 +24,62 @@
             text-align: center;
             margin-bottom: 30px;
         }
+        .historico-title {
+            color: #2c3e50;
+            margin: 30px 0 20px 0;
+            font-size: 1.5em;
+            font-weight: 600;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
         #ferias-table {
             width: 100%;
             border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
         #ferias-table th, #ferias-table td {
-            border: 1px solid #e0e0e0;
-            padding: 12px;
-            text-align: left;
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
         }
         #ferias-table th {
-            background-color: #3498db;
-            color: white;
-        }
-        .conflito {
-            background-color: #ffdddd;
-            font-weight: bold;
-        }
-        td:last-child {
-            text-align: center;
+            background-color: #f8f9fa;
             font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 0.9em;
         }
-        td:last-child:contains('Usufruído') {
-            color: #718096;
+        #ferias-table tbody tr:hover {
+            background-color: #f5f5f5;
         }
-        td:last-child:contains('Registrado') {
-            color: #2f855a;
+        #ferias-table td.conflito {
+            background-color: #ffe6e6;
+        }
+        /* Alinhamento das colunas */
+        #ferias-table th:nth-child(1),
+        #ferias-table td:nth-child(1) { /* Nome */
+            text-align: left;
+            width: 20%;
+            padding-left: 20px;
+        }
+
+        #ferias-table th:nth-child(2),
+        #ferias-table td:nth-child(2) { /* Período */
+            text-align: center;
+            width: 35%;
+        }
+
+        #ferias-table th:nth-child(3),
+        #ferias-table td:nth-child(3) { /* Dias */
+            text-align: center;
+            width: 20%;
+        }
+
+        #ferias-table th:nth-child(4),
+        #ferias-table td:nth-child(4) { /* Status */
+            text-align: center;
+            width: 25%;
         }
         .btn-voltar {
             display: block;
@@ -95,6 +125,8 @@
             <i class="fas fa-exclamation-triangle"></i> Erro ao carregar calendário
         </div>
 
+        <h2 class="historico-title">Histórico de Férias</h2>
+        
         <table id="ferias-table" style="display: none;">
             <thead>
                 <tr>
