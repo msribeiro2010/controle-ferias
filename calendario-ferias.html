@@ -181,7 +181,7 @@
                             // Verificar se o período já passou
                             const hoje = new Date();
                             const dataFim = new Date(ferias.dataFim + 'T00:00:00');
-                            const status = dataFim < hoje ? 'Usufruído' : 'Aprovado';
+                            const status = dataFim < hoje ? 'Usufruído' : 'Registrado';
 
                             linha.innerHTML = `
                                 <td class="${conflito ? 'conflito' : ''}">${userData.nome}</td>
