@@ -205,102 +205,184 @@
     </script>
     
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            min-height: 100vh;
+        }
+
         .login-container {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Inter', sans-serif;
+            padding: 20px;
         }
 
         .login-wrapper {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             padding: 40px;
             width: 100%;
             max-width: 450px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .login-header i {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 20px;
         }
 
         .login-header h1 {
             color: #2c3e50;
-            margin-bottom: 10px;
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: 600;
         }
 
         .login-header p {
             color: #7f8c8d;
+            margin: 0;
+            font-size: 16px;
         }
 
         .login-toggle {
             display: flex;
             margin-bottom: 30px;
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 4px;
         }
 
         .login-toggle button {
             flex: 1;
             padding: 12px;
             border: none;
-            background-color: #ecf0f1;
+            background: none;
             color: #34495e;
             font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .login-toggle button.active {
-            background-color: #3498db;
+            background: #3498db;
             color: white;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            position: relative;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #95a5a6;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            transition: border-color 0.3s ease;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
         .form-group input:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
         .btn-login, .btn-registro {
             width: 100%;
             padding: 14px;
-            background-color: #3498db;
+            background: linear-gradient(to right, #3498db, #2980b9);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 600;
-            transition: background-color 0.3s ease;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-login:hover, .btn-registro:hover {
-            background-color: #2980b9;
+            background: linear-gradient(to right, #2980b9, #2c3e50);
+            transform: translateY(-1px);
         }
 
         .mensagem {
             text-align: center;
             margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
         }
 
-        /* Loading Overlay */
+        .error-message {
+            background-color: #fdecea;
+            color: #e74c3c;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .success-message {
+            background-color: #edfaf1;
+            color: #2ecc71;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Loading Overlay com gradiente */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -308,21 +390,28 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             z-index: 9999;
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            backdrop-filter: blur(5px);
         }
 
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 500;
         }
 
         @keyframes spin {
@@ -330,24 +419,18 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            color: #333;
-            font-size: 16px;
-            font-weight: 500;
-        }
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 30px 20px;
+            }
 
-        .error-message {
-            color: #e74c3c;
-            margin-top: 10px;
-            font-size: 14px;
-            text-align: center;
-        }
+            .login-header h1 {
+                font-size: 20px;
+            }
 
-        .success-message {
-            color: #2ecc71;
-            margin-top: 10px;
-            font-size: 14px;
-            text-align: center;
+            .form-group {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -361,27 +444,36 @@
     <div class="login-container">
         <div class="login-wrapper">
             <div class="login-header">
+                <i class="fas fa-umbrella-beach"></i>
                 <h1>Sistema de Gestão de Férias</h1>
-                <p>Faça login para continuar</p>
+                <p>Bem-vindo! Faça login para continuar</p>
             </div>
 
             <div class="login-toggle">
-                <button id="loginToggle" class="active">Login</button>
-                <button id="registroToggle">Registrar</button>
+                <button id="loginToggle" class="active">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button id="registroToggle">
+                    <i class="fas fa-user-plus"></i> Registrar
+                </button>
             </div>
 
             <div id="login-container">
                 <form id="loginForm">
                     <div class="form-group">
                         <label for="loginUsername">Nome de Usuário</label>
-                        <input type="text" id="loginUsername" required>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="loginUsername" required placeholder="Digite seu usuário">
                     </div>
                     <div class="form-group">
                         <label for="loginSenha">Senha</label>
-                        <input type="password" id="loginSenha" required>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginSenha" required placeholder="Digite sua senha">
                     </div>
                     <div id="login-mensagem" class="mensagem"></div>
-                    <button type="submit" class="btn-login">Entrar</button>
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
                 </form>
             </div>
 
@@ -389,26 +481,33 @@
                 <form id="registroForm">
                     <div class="form-group">
                         <label for="registroNome">Nome Completo</label>
-                        <input type="text" id="registroNome" required>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="registroNome" required placeholder="Digite seu nome completo">
                     </div>
                     <div class="form-group">
                         <label for="registroUsername">Nome de Usuário</label>
-                        <input type="text" id="registroUsername" required>
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" id="registroUsername" required placeholder="Escolha um nome de usuário">
                     </div>
                     <div class="form-group">
                         <label for="registroEmail">Email</label>
-                        <input type="email" id="registroEmail" required>
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="registroEmail" required placeholder="Digite seu email">
                     </div>
                     <div class="form-group">
                         <label for="registroSenha">Senha</label>
-                        <input type="password" id="registroSenha" required>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="registroSenha" required placeholder="Crie uma senha">
                     </div>
                     <div class="form-group">
                         <label for="confirmarSenha">Confirmar Senha</label>
-                        <input type="password" id="confirmarSenha" required>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmarSenha" required placeholder="Confirme sua senha">
                     </div>
                     <div id="registro-mensagem" class="mensagem"></div>
-                    <button type="submit" class="btn-registro">Registrar</button>
+                    <button type="submit" class="btn-registro">
+                        <i class="fas fa-user-plus"></i> Criar Conta
+                    </button>
                 </form>
             </div>
         </div>
