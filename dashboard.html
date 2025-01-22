@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Férias</title>
+    
+    <!-- Favicon com fallback -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Fallback para favicon se não existir -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏖️</text></svg>">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Botão de sair
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('usuarioLogado');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao sair:', error);
+                alert('Não foi possível sair. Tente novamente.');
+            }
+        });
+    </script>
+    <style>
+        /* Estilos de carregamento */
+        body.loading * {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        body:not(.loading) {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAABKBJREFUWEe9V21sU1UYfu7H2q7r1nUfbKPbGGMwxgYMAcMQg0RNBNFEiYmJ0R8k/PCHJv7wjyb+UH/4Q2OMiTEm/tIYE6MkJCSiEgEFDGMbDGQwxvgYY2zr1rVd17W995x73ts7YFvH2Qp3TdPec855n/O8z/O+5xbhHj1kT+4xwmCIQNKEe7UHPM+DZVlwHId0Os1ls9mA1+utFgShBEAEgPxvADDGQJ8sy0qSJF3geT4vSVI6EomkPR7P0EMA0P0D4DgOsViMi0ajAsdxJMMwzMNJQPecc9Ln8wWj0WiNIAglABgAZe4EyNs5AKBQKCAej3PRaFQQRVHgOE4ihHCPJAHGGCilTKFQKAaDwWA4HK6mlEoAigByd0WAEIJcLofR0VFheHhYEARBopQKhBDpUSVAKWWFQiEXCoWC4XC4hlIqE0JkAEV6BwIcxyGTyWB0dFQYGhoSJEkSKKUiIUR+VAQopUyhUMiFw+FgJBKpoZTKAIoA8nMmwHEcxsfHMTIyIgwODgqSJAmUUpEQojwKApRSWigUcpFIJBiNRmsopXR6z80hwXEcUqkURkZGhIGBAUGWZYFSKhJC1IeZAKWUFovFXDQaDUaj0VpKKZ0RfUYCHMchmUxidHRU6O/vF2RZFiilEiFEexgEKKW0WCzmampqgtFotI5SSgEUZ0Q/kwDHcRgfH8fY2JjQ19cnyLIsUkolQoj+fyZAKaWlUilXW1sbjEajDyb6mQQ4jsPY2BgSiYTQ29sryLIsUkolQojxfxAolUq5urq6YDQafTDRzyTAcRwSiQTGx8eF7u5uQZZlkVIqE0LM+0mAUkrL5XKuvr4+GIvFGiilFEBpRvQzCXAch+HhYSSTSaGrq0uQZVmklMqEEOs+EaCU0nK5nGtoaAjGYrFGSikFUJoV/WwSDA0NIZVKCTdv3hRkWRYppTIhxL4XApRSWqlUck1NTcFYLNZIKaUASrOin02CoaEhpFIpoaOjQ5BlWaSUyoQQ514IUEpppVLJNTc3B2OxWBOllAIozYp+NgkGBweRTqeF9vZ2QZZlkVIqE0Kc/0qAUkqr1WqupaUlGIvFmimlFEB5VvSzSTAwMIB0Oi20tbUJsiyLlFKZEOLeDQFKKa1Wq7mWlpZgQ0NDM6WUAijPin42Cfr7+5HJZISWlhZBlmWRUioTQtz/RIBSSqvVaq61tTXY0NDQTCmlAMpzRT+bBH19fcjlckJzc7Mgy7JIKZUJIe7dEKCU0mq1mnv88cfDDQ0NLZRSCqA8V/SzSdDb24t8Pi80NjYKsiyLlFKZEOK5GwKUUlqtVnPt7e3hhoaGFkopBVCeK/rZJOjp6UGhUBAaGhoEWZZFSqlMCPHeDQFKKa3VarnOzs5wfX19K6WUAijPFf1sEnR3d6NYLPJ1dXWCLMsipVQmhPjuhgCllNZqtVxnZ2e4vr6+lVJKAZTnin42Cbq6ulAqlfi6ujpBlmWRUioTQvx3Q4BSSmu1Wu7UqVPh+vr6VkopBVCeK/rZJLh+/TrK5TJfW1sryLIsUkplQkjgbghQSmm9Xs+dPn06XFdX10YppQDKc0U/mwRXr15FpVLha2pqBFmWRUqpTAgJ/hMBnU7HnTlzJlxbW9tGKaUAKvNFP5sEV65cQbVa5aurqwVZlkVKqUwICf0dxV8BXxZ+kWehm3QAAAAASUVORK5CYII=">
+</head>
+<body class="loading">
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Painel de Férias</h1>
+                <div class="header-buttons">
+                    <button id="btnFeriados" class="btn-feriados">
+                        <i class="fas fa-calendar"></i> Feriados 2025
+                    </button>
+                    <button id="btnLogout" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-buttons">
+            <button onclick="window.location.href='calendario-ferias.html'" class="btn-calendario">
+                <i class="fas fa-calendar-alt"></i> Calendário de Férias
+            </button>
+        </div>
+
+        <div class="employee-info-container">
+            <div class="employee-info">
+                <h2>Informações do Funcionário</h2>
+                <p>Nome: <span id="employee-name">Carregando...</span></p>
+                <p>Username: <span id="employee-username">Carregando...</span></p>
+                <p>Email: <span id="employee-email">Carregando...</span></p>
+            </div>
+            <div class="ferias-restantes">
+                <h2>Saldo de Férias</h2>
+                <p>Total de Férias: <span id="saldoFerias">30 dias</span></p>
+            </div>
+        </div>
+
+        <div class="historico-ferias-container">
+            <h2>Histórico de Férias</h2>
+            <table id="historicoTable">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Data de Início</th>
+                        <th>Data de Término</th>
+                        <th>Dias de Férias</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="historicoCorpo">
+                    <!-- Períodos de férias serão adicionados dinamicamente aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="adicionar-ferias-container">
+            <h2>Períodos de Férias</h2>
+            <form id="adicionarFeriasForm">
+                <div class="data-ferias-container">
+                    <div class="data-inicio">
+                        <label for="dataInicio">Data de Início</label>
+                        <input type="date" id="dataInicio" required>
+                    </div>
+                    <div class="data-fim">
+                        <label for="dataFim">Data de Término</label>
+                        <input type="date" id="dataFim" required>
+                    </div>
+                    <div class="dias-ferias">
+                        <label for="diasFerias">Dias de Férias</label>
+                        <input type="number" id="diasFerias" readonly>
+                    </div>
+                </div>
+                <button type="submit">Registrar Férias</button>
+            </form>
+        </div>
+
+        <div class="dashboard-container">
+            <!-- O botão será inserido aqui via JavaScript -->
+            
+            <!-- Container para feriados do mês -->
+            <div class="dashboard-section">
+                <div id="feriados-mes" class="feriados-container">
+                    <!-- Os feriados do mês serão inseridos aqui -->
+                </div>
+            </div>
+            
+            <!-- Resto do conteúdo do dashboard -->
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Sistema de Gestão de Férias. Desenvolvido por Marcelo Ribeiro. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script type="module" src="dashboard-auth.js" defer></script>
+    <script>
+        // Remove a classe de carregamento após o carregamento da página
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.remove('loading');
+        });
+    </script>
+</body>
+</html>
