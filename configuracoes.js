@@ -3,12 +3,14 @@ import {
     getAuth, 
     updatePassword,
     reauthenticateWithCredential,
-    EmailAuthProvider
+    EmailAuthProvider,
+    deleteUser
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 import { 
     getDatabase, 
     ref, 
-    update 
+    update,
+    remove
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
 // Configuração do Firebase
@@ -112,6 +114,28 @@ const alterarSenha = async (event) => {
     }
 };
 
+// Excluir conta do usuário
+const excluirConta = async () => {
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('Usuário não autenticado');
+
+        // Remover dados do usuário do Realtime Database
+        const userRef = ref(database, 'users/' + user.uid);
+        await remove(userRef);
+
+        // Deletar a conta do usuário
+        await deleteUser(user);
+
+        // Limpar localStorage e redirecionar para a página inicial
+        localStorage.removeItem('usuarioLogado');
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Erro ao excluir conta:', error);
+        alert('Erro ao excluir conta: ' + error.message);
+    }
+};
+
 // Toggle visibilidade da senha
 const togglePassword = (button) => {
     const input = button.parentElement.querySelector('input');
@@ -128,6 +152,18 @@ const togglePassword = (button) => {
     }
 };
 
+// Mostrar modal de confirmação
+const mostrarModalConfirmacao = () => {
+    const modal = document.getElementById('modalConfirmacao');
+    modal.style.display = 'flex';
+};
+
+// Fechar modal de confirmação
+const fecharModalConfirmacao = () => {
+    const modal = document.getElementById('modalConfirmacao');
+    modal.style.display = 'none';
+};
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     carregarDadosUsuario();
@@ -139,6 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Password toggle listeners
     document.querySelectorAll('.toggle-password').forEach(button => {
         button.addEventListener('click', () => togglePassword(button));
+    });
+
+    // Exclusão de conta
+    document.getElementById('btnExcluirConta').addEventListener('click', mostrarModalConfirmacao);
+    document.getElementById('btnCancelarExclusao').addEventListener('click', fecharModalConfirmacao);
+    document.getElementById('btnConfirmarExclusao').addEventListener('click', excluirConta);
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modalConfirmacao').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalConfirmacao')) {
+            fecharModalConfirmacao();
+        }
     });
 
     // Logout
