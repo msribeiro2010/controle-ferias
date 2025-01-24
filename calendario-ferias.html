@@ -56,6 +56,16 @@
         #ferias-table td.conflito {
             background-color: #ffe6e6;
         }
+        #ferias-table td.mes-atual {
+            background-color: #e8f4fd;
+            font-weight: 500;
+        }
+        #ferias-table tr.mes-atual:hover {
+            background-color: #d1e8f8;
+        }
+        #ferias-table td.conflito.mes-atual {
+            background-color: #ffe6e6;
+        }
         /* Alinhamento das colunas */
         #ferias-table th:nth-child(1),
         #ferias-table td:nth-child(1) { /* Nome */
@@ -104,6 +114,30 @@
             margin-top: 50px;
             font-size: 18px;
         }
+        .legenda {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legenda-cor {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .legenda-cor.mes-atual {
+            background-color: #e8f4fd;
+        }
+        .legenda-cor.conflito {
+            background-color: #ffe6e6;
+        }
     </style>
 </head>
 <body>
@@ -140,6 +174,17 @@
                 <!-- Dados serão inseridos via JavaScript -->
             </tbody>
         </table>
+
+        <div class="legenda">
+            <div class="legenda-item">
+                <div class="legenda-cor mes-atual"></div>
+                <span>Mês Atual</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor conflito"></div>
+                <span>Conflito</span>
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -191,44 +236,73 @@
                 // Coletar todos os períodos de férias
                 const todosPeriodos = [];
 
-                // Preencher tabela
+                // Coletar e ordenar todos os períodos
                 Object.values(users).forEach(userData => {
                     if (userData.historicoFerias && userData.historicoFerias.length > 0) {
                         userData.historicoFerias.forEach(ferias => {
-                            const linha = document.createElement('tr');
-                            
-                            // Verificar conflitos
-                            const periodoAtual = {
+                            todosPeriodos.push({
+                                nome: userData.nome,
                                 inicio: new Date(ferias.dataInicio + 'T00:00:00'),
                                 fim: new Date(ferias.dataFim + 'T00:00:00'),
-                                nome: userData.nome
-                            };
-
-                            const conflito = todosPeriodos.some(periodo => 
-                                (periodoAtual.inicio >= periodo.inicio && periodoAtual.inicio <= periodo.fim) ||
-                                (periodoAtual.fim >= periodo.inicio && periodoAtual.fim <= periodo.fim) ||
-                                (periodoAtual.inicio <= periodo.inicio && periodoAtual.fim >= periodo.fim)
-                            );
-
-                            // Verificar se o período já passou
-                            const hoje = new Date();
-                            const dataFim = new Date(ferias.dataFim + 'T00:00:00');
-                            const status = dataFim < hoje ? 'Usufruído' : 'Registrado';
-
-                            linha.innerHTML = `
-                                <td class="${conflito ? 'conflito' : ''}">${userData.nome}</td>
-                                <td class="${conflito ? 'conflito' : ''}">
-                                    ${new Date(ferias.dataInicio + 'T00:00:00').toLocaleDateString()} - 
-                                    ${new Date(ferias.dataFim + 'T00:00:00').toLocaleDateString()}
-                                </td>
-                                <td class="${conflito ? 'conflito' : ''}">${ferias.diasFerias}</td>
-                                <td class="${conflito ? 'conflito' : ''}">${status}</td>
-                            `;
-
-                            tabelaBody.appendChild(linha);
-                            todosPeriodos.push(periodoAtual);
+                                diasFerias: ferias.diasFerias,
+                                dados: ferias
+                            });
                         });
                     }
+                });
+
+                // Ordenar períodos por data de início
+                todosPeriodos.sort((a, b) => a.inicio - b.inicio);
+
+                // Obter mês e ano atual
+                const hoje = new Date();
+                const mesAtual = hoje.getMonth();
+                const anoAtual = hoje.getFullYear();
+
+                // Preencher tabela com períodos ordenados
+                todosPeriodos.forEach(periodo => {
+                    const linha = document.createElement('tr');
+                    
+                    // Verificar conflitos
+                    const conflito = todosPeriodos.some(outroPeriodo => 
+                        periodo !== outroPeriodo && (
+                            (periodo.inicio >= outroPeriodo.inicio && periodo.inicio <= outroPeriodo.fim) ||
+                            (periodo.fim >= outroPeriodo.inicio && periodo.fim <= outroPeriodo.fim) ||
+                            (periodo.inicio <= outroPeriodo.inicio && periodo.fim >= outroPeriodo.fim)
+                        )
+                    );
+
+                    // Verificar se o período está no mês atual
+                    const mesInicio = periodo.inicio.getMonth();
+                    const mesFim = periodo.fim.getMonth();
+                    const anoInicio = periodo.inicio.getFullYear();
+                    const anoFim = periodo.fim.getFullYear();
+                    
+                    const periodoNoMesAtual = (
+                        (mesInicio === mesAtual && anoInicio === anoAtual) ||
+                        (mesFim === mesAtual && anoFim === anoAtual) ||
+                        (periodo.inicio <= hoje && periodo.fim >= hoje)
+                    );
+
+                    // Verificar status
+                    const status = periodo.fim < hoje ? 'Usufruído' : 'Registrado';
+
+                    // Adicionar classe para mês atual
+                    if (periodoNoMesAtual) {
+                        linha.classList.add('mes-atual');
+                    }
+
+                    linha.innerHTML = `
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${periodo.nome}</td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">
+                            ${periodo.inicio.toLocaleDateString()} - 
+                            ${periodo.fim.toLocaleDateString()}
+                        </td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${periodo.diasFerias}</td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${status}</td>
+                    `;
+
+                    tabelaBody.appendChild(linha);
                 });
 
                 // Esconder loading, mostrar tabela

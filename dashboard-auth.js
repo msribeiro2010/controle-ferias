@@ -273,13 +273,40 @@ const salvarPeriodoFerias = async (event) => {
 };
 
 const atualizarSaldoFerias = () => {
+    const saldoFeriasElement = document.getElementById('saldoFerias');
     if (saldoFeriasElement) {
         const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
-        const totalFerias = usuarioLogado.totalFerias || 30;
-        const feriasUtilizadas = usuarioLogado.feriasUtilizadas || 0;
-        const saldoFerias = totalFerias - feriasUtilizadas;
+        const hoje = new Date();
+        let diasUsufruidos = 0;
+
+        if (usuarioLogado.historicoFerias) {
+            usuarioLogado.historicoFerias.forEach(periodo => {
+                const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                if (dataFim < hoje) {
+                    diasUsufruidos += parseInt(periodo.diasFerias);
+                }
+            });
+        }
+
+        const totalFerias = 30;
+        const saldoFerias = totalFerias - diasUsufruidos;
         
-        saldoFeriasElement.textContent = `${saldoFerias} dias`;
+        saldoFeriasElement.innerHTML = `
+            <div class="ferias-info">
+                <div class="ferias-item">
+                    <span class="ferias-label">Total:</span>
+                    <span class="ferias-valor">${totalFerias} dias</span>
+                </div>
+                <div class="ferias-item">
+                    <span class="ferias-label">Usufruído:</span>
+                    <span class="ferias-valor">${diasUsufruidos} dias</span>
+                </div>
+                <div class="ferias-item saldo-atual">
+                    <span class="ferias-label">Saldo:</span>
+                    <span class="ferias-valor">${saldoFerias} dias</span>
+                </div>
+            </div>
+        `;
     }
 };
 
@@ -304,6 +331,9 @@ function renderizarHistoricoFerias(historico) {
     
     Object.entries(historico).forEach(([key, periodo], index) => {
         const tr = document.createElement('tr');
+        const hoje = new Date();
+        const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+        const periodoPassado = dataFim < hoje;
         
         tr.innerHTML = `
             <td>Período ${index + 1}</td>
@@ -311,14 +341,20 @@ function renderizarHistoricoFerias(historico) {
             <td>${formatarData(periodo.dataFim)}</td>
             <td>${periodo.diasFerias} dias</td>
             <td>
-                <button onclick="editarPeriodoFerias(${index})" class="btn-editar" title="Editar período">
-                    <i class="fas fa-edit"></i>
-                </button>
+                ${!periodoPassado ? `
+                    <button onclick="editarPeriodoFerias(${index})" class="btn-editar" title="Editar período">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                ` : ''}
                 <button onclick="excluirPeriodoFerias(${index})" class="btn-excluir" title="Excluir período">
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
         `;
+        
+        if (periodoPassado) {
+            tr.classList.add('periodo-passado');
+        }
         
         tbody.appendChild(tr);
     });
