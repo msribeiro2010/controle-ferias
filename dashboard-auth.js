@@ -346,9 +346,11 @@ function renderizarHistoricoFerias(historico) {
                         <i class="fas fa-edit"></i>
                     </button>
                 ` : ''}
-                <button onclick="excluirPeriodoFerias(${index})" class="btn-excluir" title="Excluir período">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
+                ${!periodoPassado ? `
+                    <button onclick="excluirPeriodoFerias(${index})" class="btn-excluir" title="Excluir período">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                ` : '-'}
             </td>
         `;
         

@@ -195,15 +195,69 @@
         .ferias-restantes {
             background-color: white;
             padding: 25px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        h2 {
+        .ferias-restantes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .ferias-restantes::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+        }
+
+        .ferias-restantes h2 {
             color: #2c3e50;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.4em;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+            opacity: 0.8;
+        }
+
+        .ferias-info {
+            position: relative;
+            padding: 10px 0;
+        }
+
+        .ferias-valor {
+            font-size: 3.5em;
+            font-weight: 600;
+            color: #2ecc71;
+            line-height: 1;
+            font-feature-settings: "tnum";
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ferias-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .ferias-icon {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 80px;
+            height: 80px;
+            opacity: 0.05;
+            transform: rotate(-15deg);
         }
 
         .historico-ferias-container {
@@ -433,6 +487,133 @@
             color: #2c3e50;
             font-weight: 500;
         }
+
+        .feriados-mes {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feriados-mes::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #3498db;
+        }
+
+        .feriados-mes h2 {
+            color: #2c3e50;
+            margin: 0 0 20px 0;
+            font-size: 1.2em;
+            padding-left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feriados-mes h2 i {
+            color: #3498db;
+        }
+
+        .feriado-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            transition: transform 0.2s ease;
+        }
+
+        .feriado-item:hover {
+            transform: translateX(5px);
+            background-color: #f1f3f5;
+        }
+
+        .feriado-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .feriado-data {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            min-width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+        }
+
+        .feriado-data-dia {
+            font-size: 1.5em;
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .feriado-data-mes {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .feriado-data-semana {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            opacity: 0.9;
+            color: #fff;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+
+        .feriado-info {
+            flex: 1;
+        }
+
+        .feriado-nome {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 1.1em;
+        }
+
+        .feriado-tipo {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feriado-tipo i {
+            font-size: 0.9em;
+            color: #3498db;
+        }
+
+        .feriado-recesso {
+            font-size: 0.85em;
+            color: #27ae60;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feriado-recesso i {
+            font-size: 0.9em;
+        }
     </style>
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
@@ -488,11 +669,11 @@
                 </div>
             </div>
             <div class="ferias-restantes">
-                <h1>Saldo de Férias</h1>
+                <h2>Saldo de Férias</h2>
                 <div class="ferias-info">
-                    <div class="ferias-item">
-                         <span class="ferias-valor" id="saldoFerias">30 dias</span>
-                    </div>
+                    <i class="fas fa-umbrella-beach ferias-icon"></i>
+                    <span class="ferias-valor" id="saldoFerias">30</span>
+                    <span class="ferias-label">dias disponíveis</span>
                 </div>
             </div>
         </div>
@@ -515,7 +696,7 @@
                             <input type="number" id="diasFerias" readonly>
                         </div>
                     </div>
-                    <button type="submit">Registrar Férias</button>
+                    <button type="submit">Registrar Período de Férias</button>
                 </form>
             </div>
 
@@ -544,7 +725,45 @@
             <!-- Container para feriados do mês -->
             <div class="dashboard-section">
                 <div id="feriados-mes" class="feriados-container">
-                    <!-- Os feriados do mês serão inseridos aqui -->
+                    <div class="feriados-mes">
+                        <h2><i class="fas fa-calendar-alt"></i> Feriados de Janeiro 2025</h2>
+                        <div class="feriado-item">
+                            <div class="feriado-data">
+                                <span class="feriado-data-dia">01</span>
+                                <span class="feriado-data-mes">Jan</span>
+                                <span class="feriado-data-semana">Quarta</span>
+                            </div>
+                            <div class="feriado-info">
+                                <div class="feriado-nome">Confraternização Universal</div>
+                                <div class="feriado-tipo">
+                                    <i class="fas fa-flag"></i>
+                                    Feriado Nacional
+                                </div>
+                                <div class="feriado-recesso">
+                                    <i class="fas fa-clock"></i>
+                                    Recesso: 30/12 - 02/01
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feriado-item">
+                            <div class="feriado-data">
+                                <span class="feriado-data-dia">25</span>
+                                <span class="feriado-data-mes">Jan</span>
+                                <span class="feriado-data-semana">Sábado</span>
+                            </div>
+                            <div class="feriado-info">
+                                <div class="feriado-nome">Aniversário de São Paulo</div>
+                                <div class="feriado-tipo">
+                                    <i class="fas fa-building"></i>
+                                    Feriado Municipal
+                                </div>
+                                <div class="feriado-recesso">
+                                    <i class="fas fa-clock"></i>
+                                    Recesso: 25/01 - 26/01
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
