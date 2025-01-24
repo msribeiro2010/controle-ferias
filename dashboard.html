@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema de Férias</title>
+    <title>Sistema de Férias</title>
     
     <!-- Favicon com fallback -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -120,6 +120,10 @@
             margin-bottom: 30px;
         }
 
+        .btn-calendario:hover {
+            background-color: #27ae60;
+        }
+
         .btn-config {
             background-color: #7f8c8d;
             color: white;
@@ -136,7 +140,59 @@
             margin-bottom: 30px;
         }
 
-        .employee-info, .ferias-restantes {
+        .employee-info {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .employee-avatar {
+            width: 80px;
+            height: 80px;
+            background-color: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+        }
+
+        .employee-details {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .employee-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .employee-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .employee-meta-item i {
+            color: #3498db;
+            font-size: 1.1em;
+        }
+
+        .ferias-restantes {
             background-color: white;
             padding: 25px;
             border-radius: 10px;
@@ -416,10 +472,22 @@
 
         <div class="employee-info-container">
             <div class="employee-info">
-                <h2>Informações do Funcionário</h2>
-                <p>Nome: <span id="employee-name">Carregando...</span></p>
-                <p>Username: <span id="employee-username">Carregando...</span></p>
-                <p>Email: <span id="employee-email">Carregando...</span></p>
+                <div class="employee-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="employee-details">
+                    <div class="employee-name" id="employee-name">Carregando...</div>
+                    <div class="employee-meta">
+                        <div class="employee-meta-item">
+                            <i class="fas fa-id-badge"></i>
+                            <span id="employee-username">Carregando...</span>
+                        </div>
+                        <div class="employee-meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="employee-email">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="ferias-restantes">
                 <h1>Saldo de Férias</h1>
