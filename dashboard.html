@@ -113,24 +113,82 @@
         }
 
         .btn-calendario {
-            background-color: #2ecc71;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
             width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            gap: 12px;
             margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
         }
 
         .btn-calendario:hover {
-            background-color: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+            background: linear-gradient(135deg, #27ae60, #219a52);
+        }
+
+        .btn-calendario:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-calendario i {
+            font-size: 1.2em;
+            background: rgba(255, 255, 255, 0.2);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-calendario:hover i {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-calendario::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .btn-calendario:hover::before {
+            left: 100%;
+        }
+
+        .dashboard-buttons {
+            margin-bottom: 30px;
+            padding: 0 15px;
         }
 
         .btn-config {
             background-color: #7f8c8d;
             color: white;
-        }
-
-        .dashboard-buttons {
-            margin-bottom: 30px;
         }
 
         .employee-info-container {
@@ -151,15 +209,72 @@
         }
 
         .employee-avatar {
-            width: 80px;
-            height: 80px;
-            background-color: #3498db;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #3498db, #2980b9);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 2em;
+            font-size: 2.5em;
+            overflow: hidden;
+        }
+
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .employee-avatar:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .employee-avatar:hover::after {
+            content: '\\f030';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            z-index: 2;
+        }
+
+        .employee-avatar-upload {
+            display: none;
+        }
+
+        .employee-avatar.has-image {
+            background: none;
+        }
+
+        .employee-avatar.has-image i {
+            display: none;
+        }
+
+        #avatarPreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
         .employee-details {
@@ -216,16 +331,6 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #2ecc71, #27ae60);
-        }
-
-        .ferias-restantes h2 {
-            color: #2c3e50;
-            font-size: 0.95em;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0 0 20px 0;
-            opacity: 0.8;
         }
 
         .ferias-info {
@@ -362,10 +467,6 @@
             background-color: #c0392b;
         }
 
-        .btn-calendario:hover {
-            background-color: #27ae60;
-        }
-
         .btn-config:hover {
             background-color: #95a5a6;
         }
@@ -490,92 +591,109 @@
 
         .feriados-mes {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 25px;
+            border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .feriados-mes::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: #3498db;
+        .feriados-mes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
         }
 
         .feriados-mes h2 {
             color: #2c3e50;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin: 0 0 20px 0;
-            font-size: 1.2em;
-            padding-left: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .feriados-mes h2 i {
             color: #3498db;
+            font-size: 1.1em;
+            background: rgba(52, 152, 219, 0.1);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
         }
 
         .feriado-item {
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            transition: transform 0.2s ease;
+            padding: 15px;
+            margin: 0 -25px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: default;
         }
 
         .feriado-item:hover {
-            transform: translateX(5px);
-            background-color: #f1f3f5;
+            background: rgba(52, 152, 219, 0.05);
         }
 
-        .feriado-item:last-child {
-            margin-bottom: 0;
+        .feriado-item:not(:last-child) {
+            border-bottom: 1px solid rgba(52, 152, 219, 0.1);
         }
 
         .feriado-data {
             background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
-            min-width: 60px;
-            height: 60px;
-            border-radius: 12px;
+            width: 65px;
+            height: 65px;
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feriado-data::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .feriado-data-dia {
-            font-size: 1.5em;
+            font-size: 1.8em;
             font-weight: 600;
             line-height: 1;
             margin-bottom: 2px;
         }
 
         .feriado-data-mes {
-            font-size: 0.8em;
+            font-size: 0.7em;
             text-transform: uppercase;
             opacity: 0.9;
+            letter-spacing: 0.5px;
         }
 
         .feriado-data-semana {
-            font-size: 0.75em;
+            font-size: 0.65em;
             text-transform: uppercase;
-            opacity: 0.9;
-            color: #fff;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             padding: 2px 6px;
-            border-radius: 4px;
+            border-radius: 3px;
             margin-top: 2px;
+            letter-spacing: 0.5px;
         }
 
         .feriado-info {
@@ -583,36 +701,51 @@
         }
 
         .feriado-nome {
-            font-weight: 600;
+            font-weight: 500;
             color: #2c3e50;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             font-size: 1.1em;
         }
 
         .feriado-tipo {
-            font-size: 0.85em;
-            color: #7f8c8d;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 4px;
         }
 
         .feriado-tipo i {
-            font-size: 0.9em;
             color: #3498db;
+            font-size: 0.9em;
+            background: rgba(52, 152, 219, 0.1);
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
         }
 
         .feriado-recesso {
-            font-size: 0.85em;
-            color: #27ae60;
-            margin-top: 4px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
+            font-size: 0.85em;
+            color: #27ae60;
         }
 
         .feriado-recesso i {
+            color: #27ae60;
             font-size: 0.9em;
+            background: rgba(46, 204, 113, 0.1);
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
         }
     </style>
     <link rel="icon" type="image/png" href="assets/favicon.png">
@@ -645,7 +778,8 @@
 
         <div class="dashboard-buttons">
             <button onclick="window.location.href='calendario-ferias.html'" class="btn-calendario">
-                <i class="fas fa-calendar-alt"></i> Calendário de Férias
+                <i class="fas fa-calendar-alt"></i>
+                <span>Calendário de Férias</span>
             </button>
         </div>
 
@@ -653,6 +787,7 @@
             <div class="employee-info">
                 <div class="employee-avatar">
                     <i class="fas fa-user"></i>
+                    <input type="file" class="employee-avatar-upload">
                 </div>
                 <div class="employee-details">
                     <div class="employee-name" id="employee-name">Carregando...</div>
@@ -731,7 +866,7 @@
                             <div class="feriado-data">
                                 <span class="feriado-data-dia">01</span>
                                 <span class="feriado-data-mes">Jan</span>
-                                <span class="feriado-data-semana">Quarta</span>
+                                <span class="feriado-data-semana">Qua</span>
                             </div>
                             <div class="feriado-info">
                                 <div class="feriado-nome">Confraternização Universal</div>
@@ -749,7 +884,7 @@
                             <div class="feriado-data">
                                 <span class="feriado-data-dia">25</span>
                                 <span class="feriado-data-mes">Jan</span>
-                                <span class="feriado-data-semana">Sábado</span>
+                                <span class="feriado-data-semana">Sáb</span>
                             </div>
                             <div class="feriado-info">
                                 <div class="feriado-nome">Aniversário de São Paulo</div>
@@ -780,6 +915,36 @@
         // Remove a classe de carregamento após o carregamento da página
         document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('loading');
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatar = document.querySelector('.employee-avatar');
+            const fileInput = avatar.querySelector('.employee-avatar-upload');
+
+            // Carregar avatar salvo
+            const savedAvatar = localStorage.getItem('userAvatar');
+            if (savedAvatar) {
+                avatar.classList.add('has-image');
+                avatar.innerHTML = `<img src="${savedAvatar}" alt="Avatar" id="avatarPreview">`;
+            }
+
+            avatar.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatar.classList.add('has-image');
+                        avatar.innerHTML = `<img src="${e.target.result}" alt="Avatar" id="avatarPreview">`;
+                        localStorage.setItem('userAvatar', e.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         });
     </script>
 </body>
