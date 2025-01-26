@@ -126,6 +126,33 @@
             color: #4A90E2;
             font-weight: 500;
         }
+
+        .periodo-coincidente {
+            background-color: #ffe6e6 !important; /* Vermelho claro */
+        }
+
+        .periodo-usufruido td {
+            color: #4A90E2 !important; /* Azul */
+        }
+
+        /* Atualizar estilo da tabela para a nova coluna */
+        .table th, .table td {
+            vertical-align: middle;
+        }
+
+        .dias-restantes {
+            font-weight: 500;
+        }
+
+        .dias-restantes.proximo {
+            color: #28a745; /* Verde para próximo período */
+        }
+
+        /* Adicionar estilo para o novo status */
+        .status-em-férias {
+            color: #ff9800 !important; /* Laranja */
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -174,6 +201,7 @@
                             <th>PERÍODO DE FÉRIAS</th>
                             <th>DIAS DE FÉRIAS</th>
                             <th>STATUS</th>
+                            <th>DIAS RESTANTES</th>
                         </tr>
                     </thead>
                     <tbody id="historicoTable">
@@ -223,10 +251,29 @@
             }
         }
 
+        // Função para verificar sobreposição de períodos
+        function verificarSobreposicao(periodo1, periodo2) {
+            return (periodo1.dataInicio <= periodo2.dataFim && periodo1.dataFim >= periodo2.dataInicio);
+        }
+
+        // Função para calcular dias restantes
+        function calcularDiasRestantes(dataInicio) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const inicio = new Date(dataInicio);
+            inicio.setHours(0, 0, 0, 0);
+            
+            const diffTime = inicio.getTime() - hoje.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays > 0 ? diffDays : 0;
+        }
+
         // Função para carregar o histórico de férias
         async function carregarHistoricoFerias() {
             const usersRef = ref(db, 'users');
             const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
             
             onValue(usersRef, (snapshot) => {
                 const historicoTable = document.getElementById('historicoTable');
@@ -243,8 +290,8 @@
                                 const dataInicio = new Date(ferias.dataInicio);
                                 const dataFim = new Date(ferias.dataFim);
                                 
-                                // Verificar se o período já passou
-                                const statusFerias = determinarStatus(dataFim, hoje, ferias.status);
+                                // Atualizar chamada da função determinarStatus
+                                const statusFerias = determinarStatus(dataInicio, dataFim, hoje, ferias.status);
                                 
                                 todasFerias.push({
                                     nome: userData.nome,
@@ -260,17 +307,49 @@
                     // Ordenar por data de início (ordem cronológica - mais antiga primeiro)
                     todasFerias.sort((a, b) => a.dataInicio - b.dataInicio);
 
+                    // Após carregar todas as férias, verificar sobreposições
+                    todasFerias.forEach((ferias, index) => {
+                        ferias.temSobreposicao = false;
+                        ferias.diasRestantes = calcularDiasRestantes(ferias.dataInicio);
+                        
+                        // Verificar sobreposição com outros períodos
+                        todasFerias.forEach((outrasFerias, outroIndex) => {
+                            if (index !== outroIndex && verificarSobreposicao(ferias, outrasFerias)) {
+                                ferias.temSobreposicao = true;
+                            }
+                        });
+                    });
+
+                    // Encontrar o próximo período de férias
+                    const proximasFerias = todasFerias
+                        .filter(f => f.diasRestantes > 0)
+                        .sort((a, b) => a.diasRestantes - b.diasRestantes)[0];
+
                     // Preencher a tabela
                     todasFerias.forEach(ferias => {
                         const row = document.createElement('tr');
                         const dataInicio = formatarData(ferias.dataInicio);
                         const dataFim = formatarData(ferias.dataFim);
                         
+                        // Adicionar classes para estilização
+                        if (ferias.temSobreposicao) {
+                            row.classList.add('periodo-coincidente');
+                        }
+                        if (ferias.status === 'Usufruído') {
+                            row.classList.add('periodo-usufruido');
+                        }
+
+                        const isProximoPeriodo = proximasFerias && 
+                            ferias.dataInicio.getTime() === proximasFerias.dataInicio.getTime();
+                        
                         row.innerHTML = `
                             <td>${ferias.nome}</td>
                             <td>${dataInicio} - ${dataFim}</td>
                             <td>${ferias.dias}</td>
-                            <td class="status-${ferias.status.toLowerCase()}">${ferias.status}</td>
+                            <td class="status-${ferias.status.toLowerCase().replace(' ', '-')}">${ferias.status}</td>
+                            <td class="dias-restantes ${isProximoPeriodo ? 'proximo' : ''}">
+                                ${ferias.diasRestantes > 0 ? `${ferias.diasRestantes} dias` : '-'}
+                            </td>
                         `;
                         historicoTable.appendChild(row);
                     });
@@ -303,7 +382,11 @@
         }
 
         // Função para determinar o status das férias
-        function determinarStatus(dataFim, hoje, statusAtual) {
+        function determinarStatus(dataInicio, dataFim, hoje, statusAtual) {
+            // Verificar se está no período de férias atual
+            if (dataInicio <= hoje && dataFim >= hoje) {
+                return 'Em férias';
+            }
             // Se a data final já passou, marca como Usufruído
             if (dataFim < hoje) {
                 return 'Usufruído';
