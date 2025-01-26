@@ -195,4 +195,41 @@ auth.onAuthStateChanged((user) => {
     } else {
         window.location.href = 'index.html';
     }
-}); 
+});
+
+// Adicionar função de exportar
+window.exportarPDF = function() {
+    const element = document.querySelector('.main-content');
+    const titulo = document.querySelector('.nav-title').textContent;
+    const data = new Date().toLocaleDateString('pt-BR');
+    
+    const opt = {
+        margin: 1,
+        filename: `lista-semanal-${data}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { 
+            unit: 'cm', 
+            format: 'a4', 
+            orientation: 'landscape'
+        },
+        pagebreak: { mode: ['avoid-all'] }
+    };
+
+    // Criar elemento temporário para formatar o PDF
+    const printElement = document.createElement('div');
+    printElement.innerHTML = `
+        <div style="padding: 20px;">
+            <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">
+                ${titulo}
+            </h2>
+            <div style="margin-bottom: 20px;">
+                Data de geração: ${data}
+            </div>
+            ${element.innerHTML}
+        </div>
+    `;
+
+    // Converter e baixar o PDF
+    html2pdf().set(opt).from(printElement).save();
+}; 

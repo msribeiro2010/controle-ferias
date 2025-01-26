@@ -98,6 +98,15 @@ function formatarDataCompleta(data) {
     });
 }
 
+// Função para formatar data
+function formatarData(data) {
+    if (typeof data === 'string') {
+        const [ano, mes, dia] = data.split('-').map(Number);
+        return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+    }
+    return data.toLocaleDateString('pt-BR');
+}
+
 // Função para carregar registros
 function carregarRegistros() {
     const registrosRef = ref(db, `trabalho/${currentUser.uid}`);
@@ -181,8 +190,8 @@ window.excluirRegistro = async function(registroId) {
     }
 };
 
-// Função para exportar histórico
-window.exportarHistorico = async function() {
+// Função para exportar PDF
+window.exportarPDF = async function() {
     try {
         const registrosRef = ref(db, `trabalho/${currentUser.uid}`);
         
@@ -195,28 +204,76 @@ window.exportarHistorico = async function() {
                 });
 
                 // Ordenar por data
-                registros.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-                // Criar CSV
-                let csv = 'Data,Modalidade,Observação\n';
-                registros.forEach(registro => {
-                    csv += `${formatarData(registro.data)},${registro.modalidade},${registro.observacao || ''}\n`;
+                registros.sort((a, b) => {
+                    const dataA = new Date(a.dataTrabalho || a.data);
+                    const dataB = new Date(b.dataTrabalho || b.data);
+                    return dataB - dataA;
                 });
 
-                // Download do arquivo
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'historico-trabalho.csv';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
+                // Criar conteúdo do PDF
+                const content = `
+                    <div style="padding: 20px; font-family: Arial, sans-serif;">
+                        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">
+                            Histórico de Trabalho
+                        </h2>
+                        <div style="margin-bottom: 20px;">
+                            Data de geração: ${formatarData(new Date())}
+                        </div>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa;">
+                                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Data</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Modalidade</th>
+                                    <th style="padding: 12px; border: 1px solid #dee2e6; text-align: left;">Observação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${registros.map(registro => `
+                                    <tr>
+                                        <td style="padding: 12px; border: 1px solid #dee2e6;">
+                                            ${formatarData(registro.dataTrabalho || registro.data)}
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #dee2e6;">
+                                            <span style="
+                                                padding: 6px 12px;
+                                                border-radius: 20px;
+                                                background-color: ${registro.modalidade === 'presencial' ? '#e8f5e9' : '#e3f2fd'};
+                                                color: ${registro.modalidade === 'presencial' ? '#4caf50' : '#2196f3'};
+                                            ">
+                                                ${registro.modalidade.charAt(0).toUpperCase() + registro.modalidade.slice(1)}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px; border: 1px solid #dee2e6;">
+                                            ${registro.observacao || '-'}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                // Configurações do PDF
+                const opt = {
+                    margin: 1,
+                    filename: `historico-trabalho-${formatarData(new Date())}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { 
+                        unit: 'cm', 
+                        format: 'a4', 
+                        orientation: 'portrait'
+                    }
+                };
+
+                // Gerar PDF
+                const element = document.createElement('div');
+                element.innerHTML = content;
+                html2pdf().set(opt).from(element).save();
             }
         }, { once: true });
     } catch (error) {
-        console.error('Erro ao exportar histórico:', error);
-        alert('Erro ao exportar histórico: ' + error.message);
+        console.error('Erro ao exportar PDF:', error);
+        alert('Erro ao exportar PDF: ' + error.message);
     }
 };
