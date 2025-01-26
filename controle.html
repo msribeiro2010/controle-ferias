@@ -151,6 +151,11 @@
                 font-size: 2rem;
             }
         }
+
+        .welcome-section h1 span {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -179,7 +184,7 @@
     <div class="main-content">
         <div class="control-panel">
             <div class="welcome-section">
-                <h1>Bem-vindo ao Sistema</h1>
+                <h1>Bem-vindo ao Sistema, <span id="nomeUsuario">Carregando...</span></h1>
                 <p>Gerencie suas férias e acompanhe seus períodos de descanso</p>
             </div>
 
@@ -194,6 +199,18 @@
                     <i class="fas fa-calendar-week"></i>
                     <h3>Calendário de Férias</h3>
                     <p>Visualize o calendário completo de férias da equipe</p>
+                </div>
+
+                <div class="menu-item" onclick="window.location.href='plantoes.html'">
+                    <i class="fas fa-user-clock"></i>
+                    <h3>Gerenciar Plantões</h3>
+                    <p>Controle e visualize a escala de plantões</p>
+                </div>
+
+                <div class="menu-item" onclick="window.location.href='trabalho.html'">
+                    <i class="fas fa-briefcase"></i>
+                    <h3>Gerenciar Trabalho</h3>
+                    <p>Controle e gerencie as atividades de trabalho</p>
                 </div>
                 
                 <div class="menu-item">
@@ -251,6 +268,12 @@
         onAuthStateChanged(auth, (user) => {
             if (!user) {
                 window.location.href = 'index.html';
+            } else {
+                // Buscar dados do usuário
+                const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+                if (usuarioLogado && usuarioLogado.nome) {
+                    document.getElementById('nomeUsuario').textContent = usuarioLogado.nome;
+                }
             }
         });
     </script>
