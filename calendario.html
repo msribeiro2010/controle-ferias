@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Férias</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #5C6BC0;
+            --background-color: #F5F7FA;
+            --card-color: #FFFFFF;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .calendar-container {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-voltar {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-voltar:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .fc-event {
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .fc-button-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-container {
+                padding: 1rem;
+            }
+        }
+
+        .calendar-legend {
+            /* Adicione estilos para a legenda do calendário */
+        }
+
+        .table-container {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .table tr:nth-child(even) {
+            background-color: #fff5f5;
+        }
+
+        .table tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .status-usufruído {
+            color: #28a745;
+            font-weight: 500;
+        }
+
+        .status-registrado {
+            color: #4A90E2;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-umbrella-beach me-2"></i>
+                Calendário de Férias
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Sair
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-voltar" onclick="window.location.href='controle.html'">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Painel
+            </button>
+        </div>
+
+        <h1 class="text-center mb-4">
+            <i class="fas fa-calendar"></i>
+            Calendário de Férias
+        </h1>
+
+        <div class="table-container">
+            <h2 class="mb-3">Histórico de Férias</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>NOME</th>
+                            <th>PERÍODO DE FÉRIAS</th>
+                            <th>DIAS DE FÉRIAS</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoTable">
+                        <!-- Dados serão inseridos via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3">
+        <p class="mb-0">© 2024 Sistema de Gerenciamento de Férias</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Função de logout
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        }
+
+        // Função para carregar o histórico de férias
+        async function carregarHistoricoFerias() {
+            const usersRef = ref(db, 'users');
+            const hoje = new Date();
+            
+            onValue(usersRef, (snapshot) => {
+                const historicoTable = document.getElementById('historicoTable');
+                historicoTable.innerHTML = '';
+                
+                if (snapshot.exists()) {
+                    const todasFerias = [];
+                    
+                    snapshot.forEach((userSnapshot) => {
+                        const userData = userSnapshot.val();
+                        
+                        if (userData.historicoFerias) {
+                            Object.entries(userData.historicoFerias).forEach(([key, ferias]) => {
+                                const dataInicio = new Date(ferias.dataInicio);
+                                const dataFim = new Date(ferias.dataFim);
+                                
+                                // Verificar se o período já passou
+                                const statusFerias = determinarStatus(dataFim, hoje, ferias.status);
+                                
+                                todasFerias.push({
+                                    nome: userData.nome,
+                                    dataInicio: dataInicio,
+                                    dataFim: dataFim,
+                                    dias: ferias.dias || calcularDias(dataInicio, dataFim),
+                                    status: statusFerias
+                                });
+                            });
+                        }
+                    });
+
+                    // Ordenar por data de início (ordem cronológica - mais antiga primeiro)
+                    todasFerias.sort((a, b) => a.dataInicio - b.dataInicio);
+
+                    // Preencher a tabela
+                    todasFerias.forEach(ferias => {
+                        const row = document.createElement('tr');
+                        const dataInicio = formatarData(ferias.dataInicio);
+                        const dataFim = formatarData(ferias.dataFim);
+                        
+                        row.innerHTML = `
+                            <td>${ferias.nome}</td>
+                            <td>${dataInicio} - ${dataFim}</td>
+                            <td>${ferias.dias}</td>
+                            <td class="status-${ferias.status.toLowerCase()}">${ferias.status}</td>
+                        `;
+                        historicoTable.appendChild(row);
+                    });
+                }
+            });
+        }
+
+        // Função para formatar data no padrão brasileiro (DD/MM/YYYY)
+        function formatarData(data) {
+            // Ajustar para o fuso horário local
+            const dataLocal = new Date(data.getTime() + data.getTimezoneOffset() * 60000);
+            
+            const dia = String(dataLocal.getDate()).padStart(2, '0');
+            const mes = String(dataLocal.getMonth() + 1).padStart(2, '0');
+            const ano = dataLocal.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // Função para calcular dias entre duas datas
+        function calcularDias(dataInicio, dataFim) {
+            // Ajustar para o fuso horário local
+            const inicio = new Date(dataInicio.getTime() + dataInicio.getTimezoneOffset() * 60000);
+            const fim = new Date(dataFim.getTime() + dataFim.getTimezoneOffset() * 60000);
+            
+            // Calcular a diferença em dias
+            const diffTime = Math.abs(fim.getTime() - inicio.getTime());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays + 1;
+        }
+
+        // Função para determinar o status das férias
+        function determinarStatus(dataFim, hoje, statusAtual) {
+            // Se a data final já passou, marca como Usufruído
+            if (dataFim < hoje) {
+                return 'Usufruído';
+            }
+            // Mantém o status atual ou define como Registrado se não houver
+            return statusAtual || 'Registrado';
+        }
+
+        // Verificar autenticação e carregar dados
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                carregarHistoricoFerias();
+            }
+        });
+    </script>
+
+    <!-- Adicionar Tippy.js para tooltips -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light-border.css"/>
+</body>
+</html> 

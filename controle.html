@@ -7,43 +7,169 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #5C6BC0;
+            --background-color: #F5F7FA;
+            --card-color: #FFFFFF;
+            --text-primary: #2C3E50;
+            --text-secondary: #606F7B;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.4rem;
+        }
+
         .main-content {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .control-panel {
-            background-color: white;
             padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            text-align: center;
         }
-        .btn-custom {
-            padding: 15px 30px;
+
+        .control-panel {
+            background-color: var(--card-color);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .control-panel:hover {
+            transform: translateY(-5px);
+        }
+
+        .welcome-section {
+            margin-bottom: 3rem;
+        }
+
+        .welcome-section h1 {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-section p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-item i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .menu-item h3 {
+            color: var(--text-primary);
             font-size: 1.2rem;
-            margin: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn-custom {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background-color: transparent;
+            border: 2px solid white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 2rem;
+            }
+
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Sistema de Gerenciamento</a>
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-umbrella-beach me-2"></i>
+                Sistema de Gerenciamento
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <button class="btn btn-outline-light" onclick="logout()">Sair</button>
+                        <button class="btn btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Sair
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -52,15 +178,40 @@
 
     <div class="main-content">
         <div class="control-panel">
-            <h1 class="mb-4">Bem-vindo ao Sistema</h1>
-            <button class="btn btn-primary btn-custom" onclick="window.location.href='dashboard.html'">
-                <i class="fas fa-calendar-alt me-2"></i>
-                Painel de Férias
-            </button>
+            <div class="welcome-section">
+                <h1>Bem-vindo ao Sistema</h1>
+                <p>Gerencie suas férias e acompanhe seus períodos de descanso</p>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-item" onclick="window.location.href='dashboard.html'">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Painel de Férias</h3>
+                    <p>Gerencie seus períodos de férias e acompanhe seu saldo</p>
+                </div>
+                
+                <div class="menu-item" onclick="window.location.href='calendario.html'">
+                    <i class="fas fa-calendar-week"></i>
+                    <h3>Calendário de Férias</h3>
+                    <p>Visualize o calendário completo de férias da equipe</p>
+                </div>
+                
+                <div class="menu-item">
+                    <i class="fas fa-history"></i>
+                    <h3>Histórico</h3>
+                    <p>Visualize seu histórico de férias anteriores</p>
+                </div>
+
+                <div class="menu-item">
+                    <i class="fas fa-user-cog"></i>
+                    <h3>Perfil</h3>
+                    <p>Atualize suas informações pessoais</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <footer class="bg-dark text-light text-center py-3">
+    <footer class="text-center py-3">
         <p class="mb-0">© 2024 Sistema de Gerenciamento de Férias</p>
     </footer>
 
