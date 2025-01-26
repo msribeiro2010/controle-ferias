@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Plantões • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='plantoes.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <h1 class="nav-title">Lista de Plantões</h1>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="filterMes">Mês:</label>
+                <select id="filterMes" class="filter-select">
+                    <option value="">Todos</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterAno">Ano:</label>
+                <select id="filterAno" class="filter-select">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterFuncionario">Funcionário:</label>
+                <select id="filterFuncionario" class="filter-select">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="aplicarFiltros()">
+                <i class="fas fa-filter"></i>
+                Aplicar Filtros
+            </button>
+            <button class="btn-outline" onclick="exportarListaPlantoes()">
+                <i class="fas fa-file-export"></i>
+                Exportar
+            </button>
+        </div>
+
+        <!-- Lista de Plantões -->
+        <div class="list-card">
+            <div class="card-header">
+                <h2><i class="fas fa-calendar-check"></i> Plantões</h2>
+                <div class="summary">
+                    <span id="totalPlantoes">0</span> plantões encontrados
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Funcionário</th>
+                            <th>Horário</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaPlantoesList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="lista-plantoes.js"></script>
+</body>
+</html>

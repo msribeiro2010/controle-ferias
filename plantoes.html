@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantões • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='dashboard.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Dashboard</span>
+                </button>
+                <h1 class="nav-title">Plantões</h1>
+            </div>
+            <div class="nav-right">
+                <button onclick="window.location.href='lista-plantoes.html'" class="btn-outline">
+                    <i class="fas fa-list"></i>
+                    Lista de Plantões
+                </button>
+                <button onclick="exportarHistorico()" class="btn-outline">
+                    <i class="fas fa-file-export"></i>
+                    Exportar
+                </button>
+                <button onclick="window.location.href='index.html'" class="btn-outline">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Layout em Colunas -->
+        <div class="columns-layout">
+            <!-- Coluna Esquerda: Formulários -->
+            <div class="column left-column">
+                <!-- Estatísticas -->
+                <div class="stats-container">
+                    <div class="stats-card">
+                        <div class="stat-item">
+                            <i class="fas fa-calendar-check stat-icon"></i>
+                            <div class="stat-info">
+                                <div class="stat-value" id="totalPlantoes">0</div>
+                                <div class="stat-label">Plantões</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stat-item">
+                            <i class="fas fa-umbrella-beach stat-icon"></i>
+                            <div class="stat-info">
+                                <div class="stat-value" id="saldoFolgas">0</div>
+                                <div class="stat-label">Folgas Disponíveis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário de Plantão -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-plus-circle"></i> Novo Plantão</h2>
+                    </div>
+                    <form id="plantaoForm" class="card-content">
+                        <div class="input-group">
+                            <label for="dataPlantao">Data do Plantão</label>
+                            <div class="date-field">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input type="date" id="dataPlantao" required>
+                                <span class="weekday" id="plantaoWeekday"></span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Registrar Plantão
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Formulário de Folga -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-umbrella-beach"></i> Nova Folga</h2>
+                    </div>
+                    <form id="folgaForm" class="card-content">
+                        <div class="input-group">
+                            <label for="dataFolga">Data da Folga</label>
+                            <div class="date-field">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input type="date" id="dataFolga" required>
+                                <span class="weekday" id="folgaWeekday"></span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary">
+                            <i class="fas fa-umbrella-beach"></i>
+                            Solicitar Folga
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Histórico -->
+            <div class="column right-column">
+                <div class="history-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Histórico</h2>
+                        <div class="header-actions">
+                            <button class="btn-outline" onclick="exportarHistorico()">
+                                <i class="fas fa-file-export"></i>
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tabs-container">
+                        <div class="tabs">
+                            <button class="tab active" data-tab="plantoes">
+                                <i class="fas fa-calendar-check"></i> Plantões
+                            </button>
+                            <button class="tab" data-tab="folgas">
+                                <i class="fas fa-umbrella-beach"></i> Folgas
+                            </button>
+                        </div>
+
+                        <!-- Conteúdo das Tabs -->
+                        <div class="tab-content active" id="plantoes-tab">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Dia</th>
+                                            <th>Horário</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historicoPlantoesList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="folgas-tab">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Dia</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historicoFolgasList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="plantoes.js"></script>
+</body>
+</html>
