@@ -46,11 +46,11 @@ function inicializarFormulario() {
             
             try {
                 const dataTrabalho = document.getElementById('dataTrabalho').value;
-                const modalidade = document.getElementById('modalidade').value;
+                const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
                 const observacao = document.getElementById('observacao').value;
 
                 const registro = {
-                    data: dataTrabalho,
+                    dataTrabalho: dataTrabalho,
                     modalidade: modalidade,
                     observacao: observacao,
                     userId: currentUser.uid,
@@ -85,10 +85,17 @@ function atualizarDataHora() {
     setInterval(atualizarHora, 1000);
 }
 
-// Função para formatar data
-function formatarData(dataString) {
-    const [ano, mes, dia] = dataString.split('-').map(Number);
-    return new Date(ano, mes - 1, dia).toLocaleDateString('pt-BR');
+// Função para formatar data com dia da semana
+function formatarDataCompleta(data) {
+    // Ajustar para o fuso horário local
+    const dataLocal = new Date(data.getTime() + data.getTimezoneOffset() * 60000);
+    
+    return dataLocal.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
 }
 
 // Função para carregar registros
@@ -97,17 +104,22 @@ function carregarRegistros() {
     
     onValue(registrosRef, (snapshot) => {
         const historicoTrabalho = document.getElementById('historicoTrabalho');
-        if (!historicoTrabalho) return;
-        
         historicoTrabalho.innerHTML = '';
         let diasPresencial = 0;
         let diasRemoto = 0;
-
+        
         if (snapshot.exists()) {
             const registros = [];
+            
             snapshot.forEach((childSnapshot) => {
                 const registro = childSnapshot.val();
                 registro.id = childSnapshot.key;
+                
+                // Ajustar a data para o fuso horário local
+                const dataOriginal = new Date(registro.dataTrabalho || registro.data);
+                const dataAjustada = new Date(dataOriginal.getTime() + dataOriginal.getTimezoneOffset() * 60000);
+                registro.dataAjustada = dataAjustada;
+                
                 registros.push(registro);
                 
                 if (registro.modalidade === 'presencial') {
@@ -117,32 +129,41 @@ function carregarRegistros() {
                 }
             });
 
-            // Ordenar por data (mais recentes primeiro)
-            registros.sort((a, b) => new Date(b.data) - new Date(a.data));
+            // Ordenar por data em ordem crescente
+            registros.sort((a, b) => a.dataAjustada - b.dataAjustada);
 
             registros.forEach(registro => {
+                const dataFormatada = formatarDataCompleta(registro.dataAjustada);
                 const row = document.createElement('tr');
+                
                 row.innerHTML = `
-                    <td>${formatarData(registro.data)}</td>
+                    <td>${dataFormatada}</td>
                     <td>
-                        <span class="badge ${registro.modalidade}">
-                            ${registro.modalidade === 'presencial' ? 'Presencial' : 'Remoto'}
+                        <span class="badge ${registro.modalidade === 'presencial' ? 'badge-presencial' : 'badge-remoto'}">
+                            <i class="fas fa-${registro.modalidade === 'presencial' ? 'building' : 'laptop-house'}"></i>
+                            ${registro.modalidade.charAt(0).toUpperCase() + registro.modalidade.slice(1)}
                         </span>
                     </td>
                     <td>${registro.observacao || '-'}</td>
                     <td>
-                        <button onclick="window.excluirRegistro('${registro.id}')" class="btn-delete" title="Excluir">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="table-actions">
+                            <button onclick="editarRegistro('${registro.id}')" class="btn-icon" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="excluirRegistro('${registro.id}')" class="btn-icon" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
+                
                 historicoTrabalho.appendChild(row);
             });
-        }
 
-        // Atualizar contadores
-        document.getElementById('diasPresencial').textContent = diasPresencial;
-        document.getElementById('diasRemoto').textContent = diasRemoto;
+            // Atualizar contadores
+            document.getElementById('diasPresencial').textContent = diasPresencial;
+            document.getElementById('diasRemoto').textContent = diasRemoto;
+        }
     });
 }
 
