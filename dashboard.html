@@ -50,27 +50,17 @@
             </div>
         </header>
 
+        <div class="d-flex justify-content-start mb-4" style="margin-top: 1rem;">
+            <button class="btn btn-voltar" onclick="window.location.href='controle.html'">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Painel
+            </button>
+        </div>
+
         <div class="dashboard-buttons">
             <button onclick="window.location.href='calendario-ferias.html'" class="btn-dashboard">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Calendário de Férias</span>
-            </button>
-            
-            <button onclick="window.location.href='plantoes.html'" class="btn-dashboard">
-                <i class="fas fa-user-clock"></i>
-                <span>Gerenciar Plantões</span>
-            </button>
-
-            <button onclick="window.location.href='trabalho.html'" class="btn-dashboard">
-                <i class="fas fa-laptop-house"></i>
-                <span>Gerenciar Trabalho</span>
-            </button>
-        </div>
-
-        <div class="d-flex justify-content-start mb-4">
-            <button class="btn btn-voltar" onclick="window.location.href='controle.html'">
-                <i class="fas fa-arrow-left me-2"></i>
-                Voltar ao Painel
             </button>
         </div>
 
@@ -383,18 +373,21 @@
         }
 
         .datetime-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            color: rgba(255, 255, 255, 0.95);
+            align-items: center;
+            color: white;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 12px;
+            padding: 15px 25px;
+            border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
         }
 
         .header-title {
@@ -413,20 +406,21 @@
         }
 
         .time {
-            font-size: 2.5em;
+            font-size: 3em;
             font-weight: 200;
             letter-spacing: 2px;
-            margin-bottom: 0;
+            margin-bottom: 2px;
             line-height: 1;
+            color: white;
         }
 
         .date {
-            font-size: 0.85em;
+            font-size: 0.95em;
             opacity: 0.9;
             font-weight: 400;
             letter-spacing: 0.5px;
             text-transform: capitalize;
-            margin-top: 2px;
+            color: white;
         }
 
         .employee-info-container {
@@ -1021,46 +1015,6 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-        }
-
-        .datetime-display {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: rgba(255, 255, 255, 0.95);
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 15px 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .time {
-            font-size: 3em;
-            font-weight: 200;
-            letter-spacing: 2px;
-            margin-bottom: 2px;
-            line-height: 1;
-        }
-
-        .date {
-            font-size: 0.95em;
-            opacity: 0.9;
-            font-weight: 400;
-            letter-spacing: 0.5px;
-            text-transform: capitalize;
-        }
-
-        @supports (-webkit-backdrop-filter: none) or (backdrop-filter: none) {
-            .datetime-display {
-                background: rgba(255, 255, 255, 0.1);
-            }
         }
 
         .vacation-countdown {

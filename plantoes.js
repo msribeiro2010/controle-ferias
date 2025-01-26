@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+import { getDatabase, ref, push, onValue, remove, update } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 
 // Configuração do Firebase
@@ -28,6 +28,10 @@ auth.onAuthStateChanged((user) => {
         carregarPlantoes();
         carregarFolgas();
         atualizarDataHora();
+        
+        // Iniciar verificação de status apenas após autenticação
+        verificarStatusPlantoes();
+        setInterval(verificarStatusPlantoes, 60000);
     } else {
         window.location.href = 'index.html';
     }
@@ -120,68 +124,95 @@ function atualizarSaldos() {
     document.getElementById('saldoFolgas').textContent = saldoFolgas;
 }
 
-// Função para carregar plantões
+// Função para verificar status dos plantões
+function verificarStatusPlantoes() {
+    if (!currentUser) return; // Adicionar verificação de segurança
+    
+    const agora = new Date();
+    const meiaNoite = new Date(agora);
+    meiaNoite.setHours(0, 0, 0, 0);
+
+    const plantoesRef = ref(db, `plantoes/${currentUser.uid}`);
+    
+    onValue(plantoesRef, (snapshot) => {
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                const plantao = childSnapshot.val();
+                const dataPlantao = new Date(plantao.dataPlantao);
+                dataPlantao.setHours(0, 0, 0, 0);
+
+                // Se a data do plantão for anterior à meia-noite de hoje e o status não for "Realizado"
+                if (dataPlantao < meiaNoite && plantao.status !== 'Realizado') {
+                    // Atualizar status para "Realizado"
+                    const plantaoRef = ref(db, `plantoes/${currentUser.uid}/${childSnapshot.key}`);
+                    update(plantaoRef, {
+                        status: 'Realizado'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Atualizar a função carregarPlantoes para mostrar o status correto
 function carregarPlantoes() {
-    const plantoesRef = ref(db, 'plantoes');
+    const plantoesRef = ref(db, `plantoes/${currentUser.uid}`);
     
     onValue(plantoesRef, (snapshot) => {
         const historicoPlantoesList = document.getElementById('historicoPlantoesList');
         historicoPlantoesList.innerHTML = '';
-        plantoesRealizados = 0;
-        saldoFolgas = 0;
-
+        let totalPlantoes = 0;
+        
         if (snapshot.exists()) {
             const plantoes = [];
+            
             snapshot.forEach((childSnapshot) => {
                 const plantao = childSnapshot.val();
-                if (plantao.userId === currentUser.uid) {
-                    plantao.id = childSnapshot.key;
-                    plantoes.push(plantao);
-                    
-                    // Incrementar contadores
-                    plantoesRealizados++;
-                    if (plantaoJaPassou(plantao.data)) {
-                        saldoFolgas++;
-                    }
+                plantao.id = childSnapshot.key;
+                plantoes.push(plantao);
+                totalPlantoes++;
+            });
+
+            // Ordenar por data
+            plantoes.sort((a, b) => new Date(b.dataPlantao) - new Date(a.dataPlantao));
+
+            plantoes.forEach(plantao => {
+                const dataPlantao = new Date(plantao.dataPlantao);
+                const agora = new Date();
+                agora.setHours(0, 0, 0, 0);
+                dataPlantao.setHours(0, 0, 0, 0);
+
+                // Definir status baseado na data
+                let status = plantao.status || 'Pendente';
+                if (dataPlantao < agora && status !== 'Realizado') {
+                    status = 'Realizado';
                 }
-            });
 
-            // Ordenar plantões por data (mais recentes primeiro)
-            plantoes.sort((a, b) => {
-                const [anoA, mesA, diaA] = a.data.split('-').map(Number);
-                const [anoB, mesB, diaB] = b.data.split('-').map(Number);
-                const dataA = new Date(anoA, mesA - 1, diaA);
-                const dataB = new Date(anoB, mesB - 1, diaB);
-                return dataB - dataA;
-            });
-
-            // Exibir plantões na tabela
-            plantoes.forEach((plantao) => {
-                const [ano, mes, dia] = plantao.data.split('-').map(Number);
-                const data = new Date(ano, mes - 1, dia);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${formatarData(plantao.data)}</td>
-                    <td>${data.toLocaleDateString('pt-BR', { weekday: 'long' })}</td>
-                    <td>${plantao.horarioInicio} - ${plantao.horarioFim}</td>
+                    <td>${formatarData(plantao.dataPlantao)}</td>
+                    <td>${formatarDiaSemana(plantao.dataPlantao)}</td>
+                    <td>09:00 - 12:00</td>
+                    <td>Plantão Judiciário</td>
                     <td>
-                        <span class="status-badge ${plantaoJaPassou(plantao.data) ? 'realizado' : 'pendente'}">
-                            ${plantaoJaPassou(plantao.data) ? 'Realizado' : 'Pendente'}
+                        <span class="badge badge-${status.toLowerCase()}">
+                            ${status}
                         </span>
                     </td>
                     <td>
-                        <button class="btn-delete" onclick="deletarPlantao('${plantao.id}')" 
-                                ${plantaoJaPassou(plantao.data) ? 'disabled' : ''}>
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div class="table-actions">
+                            <button onclick="excluirPlantao('${plantao.id}')" class="btn-icon" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
+                
                 historicoPlantoesList.appendChild(row);
             });
         }
 
-        // Atualizar contadores na interface
-        atualizarSaldos();
+        document.getElementById('totalPlantoes').textContent = totalPlantoes;
     });
 }
 
@@ -306,22 +337,15 @@ document.getElementById('plantaoForm').addEventListener('submit', async (e) => {
 
     try {
         const dataPlantao = document.getElementById('dataPlantao').value;
-        const dataAjustada = ajustarData(dataPlantao);
         
-        // Obter tipo e horários do plantão
-        const infoPlantao = verificarTipoPlantao(dataAjustada);
-
         const plantao = {
-            data: dataAjustada,
-            tipo: infoPlantao.tipo,
-            horarioInicio: infoPlantao.horarioInicio,
-            horarioFim: infoPlantao.horarioFim,
-            totalHoras: infoPlantao.totalHoras,
+            dataPlantao: dataPlantao,
+            status: 'Pendente',
             userId: currentUser.uid,
             timestamp: Date.now()
         };
 
-        const plantoesRef = ref(db, 'plantoes');
+        const plantoesRef = ref(db, `plantoes/${currentUser.uid}`);
         await push(plantoesRef, plantao);
         
         alert('Plantão registrado com sucesso!');
@@ -374,7 +398,43 @@ document.getElementById('folgaForm').addEventListener('submit', async (e) => {
         console.error('Erro ao solicitar folga:', error);
         alert('Erro ao solicitar folga: ' + error.message);
     }
-}); 
+});
+
+// Função para formatar dia da semana com cor
+function formatarDiaSemana(dataString) {
+    const [ano, mes, dia] = dataString.split('-').map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+    
+    // Definir cores para cada dia da semana
+    const cores = {
+        'domingo': '#e74c3c',     // Vermelho
+        'sábado': '#e67e22',      // Laranja
+        'segunda-feira': '#3498db', // Azul
+        'terça-feira': '#2ecc71',   // Verde
+        'quarta-feira': '#9b59b6',  // Roxo
+        'quinta-feira': '#f1c40f',  // Amarelo
+        'sexta-feira': '#1abc9c'    // Verde água
+    };
+
+    // Garantir que a data está correta antes de retornar
+    const diaCorreto = data.getDay() === 0 ? 'domingo' : diaSemana;
+    return `<span style="color: ${cores[diaCorreto]}; font-weight: 500;">${diaCorreto}</span>`;
+}
+
+// Função para excluir plantão
+window.excluirPlantao = async function(plantaoId) {
+    if (confirm('Tem certeza que deseja excluir este plantão?')) {
+        try {
+            const plantaoRef = ref(db, `plantoes/${currentUser.uid}/${plantaoId}`);
+            await remove(plantaoRef);
+            alert('Plantão excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir plantão:', error);
+            alert('Erro ao excluir plantão: ' + error.message);
+        }
+    }
+};
 
 // Função para exportar histórico em PDF
 async function exportarHistorico() {

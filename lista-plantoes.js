@@ -79,55 +79,64 @@ function carregarFuncionarios() {
 // Função para carregar plantões
 function carregarPlantoes() {
     const plantoesRef = ref(db, 'plantoes');
+    
     onValue(plantoesRef, (snapshot) => {
+        todosPlantoes = [];
         if (snapshot.exists()) {
-            todosPlantoes = [];
-            snapshot.forEach((childSnapshot) => {
-                const plantao = childSnapshot.val();
-                plantao.id = childSnapshot.key;
-                todosPlantoes.push(plantao);
+            snapshot.forEach((userSnapshot) => {
+                const userId = userSnapshot.key;
+                userSnapshot.forEach((plantaoSnapshot) => {
+                    const plantaoData = plantaoSnapshot.val();
+                    // Verificar se o valor é um objeto válido
+                    if (typeof plantaoData === 'object' && plantaoData !== null) {
+                        const plantao = {
+                            ...plantaoData,
+                            id: plantaoSnapshot.key,
+                            userId: userId
+                        };
+                        if (plantao.dataPlantao) {
+                            todosPlantoes.push(plantao);
+                        }
+                    }
+                });
             });
-            aplicarFiltros();
         }
+        aplicarFiltros();
     });
 }
 
 // Função para aplicar filtros
 function aplicarFiltros() {
+    let plantoesFiltrados = [...todosPlantoes];
+
     const mes = document.getElementById('filterMes').value;
     const ano = document.getElementById('filterAno').value;
     const funcionario = document.getElementById('filterFuncionario').value;
     
-    let plantoesFilter = [...todosPlantoes];
-    
     // Filtrar por mês e ano
     if (mes) {
-        plantoesFilter = plantoesFilter.filter(plantao => {
-            const [anoPlantao, mesPlantao] = plantao.data.split('-');
+        plantoesFiltrados = plantoesFiltrados.filter(plantao => {
+            const [anoPlantao, mesPlantao] = plantao.dataPlantao.split('-');
             return mesPlantao === mes.padStart(2, '0') && anoPlantao === ano;
         });
     } else if (ano) {
-        plantoesFilter = plantoesFilter.filter(plantao => {
-            const [anoPlantao] = plantao.data.split('-');
+        plantoesFiltrados = plantoesFiltrados.filter(plantao => {
+            const [anoPlantao] = plantao.dataPlantao.split('-');
             return anoPlantao === ano;
         });
     }
     
     // Filtrar por funcionário
     if (funcionario) {
-        plantoesFilter = plantoesFilter.filter(plantao => plantao.userId === funcionario);
+        plantoesFiltrados = plantoesFiltrados.filter(plantao => plantao.userId === funcionario);
     }
     
-    // Ordenar por data (mais recentes primeiro)
-    plantoesFilter.sort((a, b) => {
-        const [anoA, mesA, diaA] = a.data.split('-').map(Number);
-        const [anoB, mesB, diaB] = b.data.split('-').map(Number);
-        const dataA = new Date(anoA, mesA - 1, diaA);
-        const dataB = new Date(anoB, mesB - 1, diaB);
-        return dataB - dataA;
+    // Ordenar por data mais recente
+    plantoesFiltrados.sort((a, b) => {
+        return new Date(b.dataPlantao) - new Date(a.dataPlantao);
     });
     
-    exibirPlantoes(plantoesFilter);
+    exibirPlantoes(plantoesFiltrados);
 }
 
 // Função para exibir plantões filtrados
@@ -137,24 +146,20 @@ function exibirPlantoes(plantoes) {
     document.getElementById('totalPlantoes').textContent = plantoes.length;
     
     plantoes.forEach(plantao => {
-        const [ano, mes, dia] = plantao.data.split('-').map(Number);
+        const [ano, mes, dia] = plantao.dataPlantao.split('-').map(Number);
         const data = new Date(ano, mes - 1, dia);
         const funcionario = todosFuncionarios.get(plantao.userId);
         const row = document.createElement('tr');
         
         row.innerHTML = `
-            <td>${formatarData(plantao.data)}</td>
+            <td>${formatarData(plantao.dataPlantao)}</td>
             <td>${data.toLocaleDateString('pt-BR', { weekday: 'long' })}</td>
             <td>${funcionario ? (funcionario.nome || funcionario.email) : 'Usuário não encontrado'}</td>
-            <td>${plantao.horarioInicio} - ${plantao.horarioFim}</td>
+            <td>09:00 - 12:00</td>
+            <td>Plantão Judiciário</td>
             <td>
-                <span class="tipo-badge ${plantao.tipo.toLowerCase()}">
-                    ${plantao.tipo}
-                </span>
-            </td>
-            <td>
-                <span class="status-badge ${plantaoJaPassou(plantao.data) ? 'realizado' : 'pendente'}">
-                    ${plantaoJaPassou(plantao.data) ? 'Realizado' : 'Pendente'}
+                <span class="status-badge ${plantaoJaPassou(plantao.dataPlantao) ? 'realizado' : 'pendente'}">
+                    ${plantaoJaPassou(plantao.dataPlantao) ? 'Realizado' : 'Pendente'}
                 </span>
             </td>
         `;

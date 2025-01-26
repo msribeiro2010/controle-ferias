@@ -7,15 +7,110 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo para os botões */
+        .btn-outline {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-outline i {
+            color: white;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Ajuste para os botões de ação */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Estilo para botões primários */
+        .btn-primary {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Estilo para botões secundários */
+        .btn-secondary {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Estilos para os badges de status */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .badge-pendente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-realizado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <!-- Navegação Superior -->
         <nav class="top-nav">
             <div class="nav-left">
-                <button onclick="window.location.href='dashboard.html'" class="back-button">
+                <button onclick="window.location.href='controle.html'" class="back-button">
                     <i class="fas fa-chevron-left"></i>
-                    <span>Dashboard</span>
+                    <span>Voltar</span>
                 </button>
                 <h1 class="nav-title">Plantões</h1>
             </div>
