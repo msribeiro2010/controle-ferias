@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Usuário</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #5C6BC0;
+            --background-color: #F5F7FA;
+            --card-color: #FFFFFF;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .profile-container {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .btn-voltar {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-voltar:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .employee-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .employee-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3em;
+            overflow: hidden;
+        }
+
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .employee-details {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-size: 2em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .employee-meta {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .employee-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #7f8c8d;
+        }
+
+        .employee-meta-item i {
+            color: var(--primary-color);
+            width: 24px;
+            text-align: center;
+        }
+
+        .ferias-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+
+        .ferias-info h2 {
+            color: #2c3e50;
+            font-size: 1.5em;
+            margin-bottom: 1rem;
+        }
+
+        .ferias-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .status-card i {
+            font-size: 2em;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .status-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .status-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-user-circle me-2"></i>
+                Perfil do Usuário
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" title="Menu de navegação">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-outline-light" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Sair
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content container">
+        <button class="btn btn-voltar" onclick="window.location.href='controle.html'">
+            <i class="fas fa-arrow-left me-2"></i>
+            Voltar ao Painel
+        </button>
+
+        <div class="profile-container">
+            <div class="employee-info">
+                <div class="employee-avatar">
+                    <i class="fas fa-user" id="avatarIcon"></i>
+                    <img id="avatarPreview" src="" alt="Avatar" style="display: none;">
+                    <input type="file" class="employee-avatar-upload" id="avatarUpload" accept="image/*" style="display: none;">
+                </div>
+                <div class="employee-details">
+                    <div class="employee-name" id="employee-name">Carregando...</div>
+                    <div class="employee-meta">
+                        <div class="employee-meta-item">
+                            <i class="fas fa-id-badge"></i>
+                            <span id="employee-username">Carregando...</span>
+                        </div>
+                        <div class="employee-meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="employee-email">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ferias-info">
+                <h2>Informações de Férias</h2>
+                <div class="ferias-status">
+                    <div class="status-card">
+                        <i class="fas fa-umbrella-beach"></i>
+                        <div class="status-value" id="saldoFerias">30</div>
+                        <div class="status-label">Dias Disponíveis</div>
+                    </div>
+                    <div class="status-card">
+                        <i class="fas fa-calendar-check"></i>
+                        <div class="status-value" id="feriasUtilizadas">0</div>
+                        <div class="status-label">Dias Utilizados</div>
+                    </div>
+                    <div class="status-card">
+                        <i class="fas fa-hourglass-half"></i>
+                        <div class="status-value" id="diasRestantes">--</div>
+                        <div class="status-label">Dias até Próximas Férias</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3">
+        <p class="mb-0">© 2024 Sistema de Gerenciamento de Férias</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Função de logout
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        }
+
+        // Função para calcular dias até próximas férias
+        function calcularDiasAteProximasFerias(historicoFerias) {
+            if (!historicoFerias || historicoFerias.length === 0) return '--';
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);  // Zerar as horas do dia atual
+            
+            const proximasFerias = Object.values(historicoFerias)
+                .filter(ferias => new Date(ferias.dataInicio) > hoje)
+                .sort((a, b) => new Date(a.dataInicio) - new Date(b.dataInicio))[0];
+
+            if (proximasFerias) {
+                const dataInicio = new Date(proximasFerias.dataInicio);
+                dataInicio.setHours(0, 0, 0, 0);  // Zerar as horas da data inicial
+                
+                const diffTime = dataInicio - hoje;
+                return Math.floor(diffTime / (1000 * 60 * 60 * 24));  // Usar Math.floor ao invés de Math.ceil
+            }
+            return '--';
+        }
+
+        // Função para calcular dias utilizados
+        function calcularDiasUtilizados(historicoFerias) {
+            if (!historicoFerias) return 0;
+            
+            return Object.values(historicoFerias)
+                .filter(ferias => new Date(ferias.dataFim) < new Date())
+                .reduce((total, ferias) => {
+                    const inicio = new Date(ferias.dataInicio);
+                    const fim = new Date(ferias.dataFim);
+                    const diffTime = Math.abs(fim - inicio);
+                    return total + Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                }, 0);
+        }
+
+        // Função para carregar dados do usuário
+        function carregarDadosUsuario() {
+            const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+            if (usuarioLogado) {
+                // Informações básicas
+                document.getElementById('employee-name').textContent = usuarioLogado.nome;
+                document.getElementById('employee-username').textContent = usuarioLogado.username;
+                document.getElementById('employee-email').textContent = usuarioLogado.email;
+                
+                // Calcular dias utilizados
+                const diasUtilizados = calcularDiasUtilizados(usuarioLogado.historicoFerias);
+                document.getElementById('feriasUtilizadas').textContent = diasUtilizados;
+                
+                // Calcular dias disponíveis (30 - dias utilizados)
+                const diasDisponiveis = 30 - diasUtilizados;
+                document.getElementById('saldoFerias').textContent = diasDisponiveis;
+                
+                // Calcular dias até próximas férias
+                const diasRestantes = calcularDiasAteProximasFerias(usuarioLogado.historicoFerias);
+                document.getElementById('diasRestantes').textContent = diasRestantes;
+                
+                // Carregar avatar se existir
+                const savedAvatar = localStorage.getItem('userAvatar');
+                if (savedAvatar) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    const avatarIcon = document.getElementById('avatarIcon');
+                    avatarPreview.src = savedAvatar;
+                    avatarPreview.style.display = 'block';
+                    avatarIcon.style.display = 'none';
+                }
+            }
+        }
+
+        // Verificar autenticação e carregar dados
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                carregarDadosUsuario();
+            }
+        });
+
+        // Configurar upload de avatar
+        document.querySelector('.employee-avatar').addEventListener('click', () => {
+            document.getElementById('avatarUpload').click();
+        });
+
+        document.getElementById('avatarUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    const avatarIcon = document.getElementById('avatarIcon');
+                    avatarPreview.src = e.target.result;
+                    avatarPreview.style.display = 'block';
+                    avatarIcon.style.display = 'none';
+                    localStorage.setItem('userAvatar', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html> 
