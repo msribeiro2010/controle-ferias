@@ -509,23 +509,61 @@
             transition: transform 0.3s ease;
         }
 
+        /* Estilo moderno para os alertas */
         .alerta-plantao {
-            margin: 1rem 0;
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            background-color: #fff3cd;
-            color: #856404;
-            border-left: 4px solid #ffc107;
-            font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            animation: fadeIn 0.5s ease;
+            gap: 12px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Alerta de Plantão */
+        #alertaPlantao {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #1565C0;
+            border: 1px solid rgba(25, 118, 210, 0.1);
+        }
+
+        #alertaPlantao i {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+        }
+
+        /* Alerta de Aniversário */
+        #alertaAniversario {
+            background: linear-gradient(135deg, #F8BBD0, #F5E6EC);
+            color: #C2185B;
+            border: 1px solid rgba(194, 24, 91, 0.1);
+            margin-top: 12px;
+        }
+
+        #alertaAniversario i {
+            background: linear-gradient(135deg, #EC407A, #D81B60);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+        }
+
+        /* Efeito hover para os alertas */
+        .alerta-plantao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .alerta-plantao {
+                padding: 14px 16px;
+                font-size: 0.95rem;
+            }
         }
 
         /* Estilo do Modal de Feriados */
@@ -727,7 +765,7 @@
                 <h1>Bem-vindo, <span id="nomeUsuario">Carregando...</span></h1>
                 <p>Gerencie Férias, Plantões e Trabalho(Presencial ou Remoto)</p>
                 <div id="alertaPlantao" class="alerta-plantao"></div>
-                <div id="alertaAniversario" class="alerta-plantao" style="background-color: #ffe0f0; color: #d81b60; border-left-color: #e91e63; display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                <div id="alertaAniversario" class="alerta-plantao">
                     <!-- Será preenchido via JavaScript -->
                 </div>
             </div>
