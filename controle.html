@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Painel de Controle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #5C6BC0;
+            --background-color: #F5F7FA;
+            --card-color: #FFFFFF;
+            --text-primary: #2C3E50;
+            --text-secondary: #606F7B;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar {
+            background-color: #1976d2;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .navbar-left, .navbar-right {
+            flex: 1;
+        }
+
+        .navbar-center {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            text-decoration: none;
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .navbar-brand:hover i {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .datetime-header {
+            text-align: center;
+            color: white;
+        }
+
+        .datetime-header .time {
+            font-size: 1.8rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 0.25rem;
+        }
+
+        .datetime-header .date {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: capitalize;
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .navbar-brand {
+                margin-bottom: 0.5rem;
+            }
+
+            .datetime-header {
+                margin: 0.5rem 0;
+            }
+
+            .btn-logout {
+                margin: 0.5rem 0;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .control-panel {
+            background-color: var(--card-color);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .control-panel:hover {
+            transform: translateY(-5px);
+        }
+
+        .welcome-section {
+            margin-bottom: 3rem;
+        }
+
+        .welcome-section h1 {
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-section p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .menu-item i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .menu-item h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-item p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn-custom {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background-color: transparent;
+            border: 2px solid white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem 0;
+            margin-top: auto;
+        }
+
+        @media (max-width: 992px) {
+            .navbar .container {
+                padding: 0.5rem 1rem;
+            }
+
+            .datetime-header {
+                font-size: 0.9em;
+            }
+
+            .datetime-header .time {
+                font-size: 1.5em;
+            }
+
+            .control-panel {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar .container .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem 0;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .datetime-header {
+                order: 2;
+                margin: 0.5rem 0;
+                display: flex;
+            }
+
+            .header-buttons {
+                order: 3;
+                width: 100%;
+            }
+
+            .control-panel {
+                padding: 1.5rem 1rem;
+                margin: 0.5rem;
+            }
+
+            .welcome-section h1 {
+                font-size: 1.8rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-item {
+                padding: 1.2rem;
+            }
+
+            .menu-item i {
+                font-size: 2rem;
+            }
+
+            .menu-item h3 {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+
+            .datetime-header .time {
+                font-size: 1.3em;
+            }
+
+            .datetime-header .date {
+                font-size: 0.8em;
+            }
+
+            .welcome-section h1 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-section p {
+                font-size: 0.9rem;
+            }
+
+            .menu-item {
+                padding: 1rem;
+            }
+
+            .menu-item i {
+                font-size: 1.8rem;
+            }
+
+            .menu-item h3 {
+                font-size: 1rem;
+            }
+
+            .menu-item p {
+                font-size: 0.8rem;
+            }
+
+            .feriados-mes h2 {
+                font-size: 1.2rem;
+            }
+
+            .feriado-item {
+                padding: 0.8rem;
+            }
+
+            .feriado-data-dia {
+                font-size: 1.2rem;
+            }
+
+            .feriado-nome {
+                font-size: 0.9rem;
+            }
+
+            .feriado-tipo {
+                font-size: 0.8rem;
+            }
+        }
+
+        .welcome-section h1 span {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-feriados {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-feriados:hover {
+            background-color: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-feriados, .btn-logout {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .feriados-container {
+            padding: 1rem;
+        }
+
+        .feriados-mes {
+            margin-bottom: 2rem;
+        }
+
+        .feriados-mes h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feriado-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            gap: 1.5rem;
+        }
+
+        .feriado-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .feriado-data-dia-semana {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        .feriado-data-dia {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .feriado-data-mes {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .feriado-info {
+            flex: 1;
+        }
+
+        .feriado-nome {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .feriado-tipo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .feriado-passado {
+            opacity: 0.7;
+            background: #ffebee !important;
+        }
+
+        .feriado-passado .feriado-data-dia {
+            color: #e53935 !important;
+        }
+
+        .feriado-passado .feriado-nome {
+            color: #e53935;
+        }
+
+        .feriado-passado .feriado-tipo {
+            color: #e53935;
+        }
+
+        .feriado-passado .feriado-tipo i {
+            color: #e53935;
+        }
+
+        .menu-item:hover i.fa-cog {
+            transform: rotate(45deg);
+            transition: transform 0.3s ease;
+        }
+
+        .alerta-plantao {
+            margin: 1rem 0;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Estilo do Modal de Feriados */
+        .modal-content {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .modal-title i {
+            font-size: 1.6rem;
+        }
+
+        .feriados-mes h2 {
+            background: linear-gradient(135deg, #f5f7fa, #e3e6f0);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            color: #1976D2;
+        }
+
+        .feriado-item {
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .feriado-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .feriado-data {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            padding: 1rem;
+            border-radius: 10px;
+            min-width: 100px;
+        }
+
+        .feriado-data-dia {
+            color: #1565C0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .feriado-data-mes {
+            color: #1976D2;
+            font-weight: 500;
+        }
+
+        .feriado-data-dia-semana {
+            color: #2196F3;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+
+        .feriado-info {
+            padding: 0.5rem 1rem;
+        }
+
+        .feriado-nome {
+            color: #2C3E50;
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .feriado-tipo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #607D8B;
+        }
+
+        .feriado-tipo i {
+            color: #1976D2;
+        }
+
+        /* Cores diferentes para cada tipo de feriado */
+        .feriado-tipo.nacional i { color: #4CAF50; }
+        .feriado-tipo.facultativo i { color: #FF9800; }
+        .feriado-tipo.recesso i { color: #9C27B0; }
+        .feriado-tipo.estadual i { color: #E91E63; }
+        .feriado-tipo.municipal i { color: #00BCD4; }
+
+        /* Estilo para feriados passados */
+        .feriado-item.passado {
+            background: #f5f5f5;
+            opacity: 0.7;
+        }
+
+        .feriado-item.passado .feriado-data {
+            background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+        }
+
+        .feriado-item.passado .feriado-data-dia,
+        .feriado-item.passado .feriado-data-mes,
+        .feriado-item.passado .feriado-data-dia-semana {
+            color: #757575;
+        }
+
+        .feriado-item.passado .feriado-nome {
+            color: #757575;
+        }
+
+        .feriado-item.passado .feriado-tipo {
+            color: #9e9e9e;
+        }
+
+        .feriado-item.passado .feriado-tipo i {
+            color: #9e9e9e;
+        }
+
+        /* Animação para destacar o próximo feriado */
+        @keyframes highlight {
+            0% { background-color: rgba(25, 118, 210, 0.1); }
+            50% { background-color: rgba(25, 118, 210, 0.2); }
+            100% { background-color: white; }
+        }
+
+        #proximoFeriado {
+            border-left: 4px solid #1976D2;
+        }
+
+        .navbar-left .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-left .navbar-brand i {
+            font-size: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-left .navbar-brand:hover {
+            transform: translateY(-2px);
+        }
+
+        .navbar-left .navbar-brand:hover i {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(10deg);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-left">
+                    <a href="https://trt15.jus.br" target="_blank" class="navbar-brand" style="text-decoration: none;">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>TRT15 - Sistema de Controle de Trabalho</span>
+                    </a>
+                </div>
+
+                <div class="navbar-center">
+                    <div class="datetime-header">
+                        <div class="time" id="headerTime">12:00</div>
+                        <div class="date" id="headerDate">Segunda-feira, 25 de Janeiro</div>
+                    </div>
+                </div>
+
+                <div class="navbar-right">
+                    <button class="btn-logout" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Sair</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="control-panel">
+            <div class="welcome-section">
+                <h1>Bem-vindo, <span id="nomeUsuario">Carregando...</span></h1>
+                <p>Gerencie Férias, Plantões e Trabalho(Presencial ou Remoto)</p>
+                <div id="alertaPlantao" class="alerta-plantao"></div>
+                <div id="alertaAniversario" class="alerta-plantao" style="background-color: #ffe0f0; color: #d81b60; border-left-color: #e91e63; display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                    <!-- Será preenchido via JavaScript -->
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <!-- Gerenciar Trabalho -->
+                <div class="menu-item" onclick="window.location.href='trabalho.html'" style="background: linear-gradient(135deg, #0097A7, #00838F);">
+                    <i class="fas fa-briefcase" style="color: white;"></i>
+                    <h3 style="color: white;">Gerenciar Trabalho</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Controle suas atividades de trabalho</p>
+                </div>
+
+                <!-- Gerenciar Férias -->
+                <div class="menu-item" onclick="window.location.href='dashboard.html'" style="background: linear-gradient(135deg, #00BCD4, #00ACC1);">
+                    <i class="fas fa-calendar-alt" style="color: white;"></i>
+                    <h3 style="color: white;">Gerenciar Férias</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Gerencie seus períodos de férias</p>
+                </div>
+
+                <!-- Gerenciar Plantões/Folgas -->
+                <div class="menu-item" onclick="window.location.href='plantoes.html'" style="background: linear-gradient(135deg, #00ACC1, #0097A7);">
+                    <i class="fas fa-user-clock" style="color: white;"></i>
+                    <h3 style="color: white;">Gerenciar Plantões/Folgas</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Controle seus plantões e folgas</p>
+                </div>
+
+                <!-- Lista de Plantões -->
+                <div class="menu-item" onclick="window.location.href='lista-plantoes.html'" style="background: linear-gradient(135deg, #039BE5, #0288D1);">
+                    <i class="fas fa-list" style="color: white;"></i>
+                    <h3 style="color: white;">Lista de Plantões</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Visualize todos os plantões registrados</p>
+                </div>
+
+                <!-- Lista de Folgas -->
+                <div class="menu-item" onclick="window.location.href='lista-folgas.html'" style="background: linear-gradient(135deg, #29B6F6, #039BE5);">
+                    <i class="fas fa-umbrella-beach" style="color: white;"></i>
+                    <h3 style="color: white;">Lista de Folgas</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Visualize todas as folgas registradas</p>
+                </div>
+
+                <!-- Calendário de Férias -->
+                <div class="menu-item" onclick="window.location.href='calendario.html'" style="background: linear-gradient(135deg, #03A9F4, #0288D1);">
+                    <i class="fas fa-calendar-week" style="color: white;"></i>
+                    <h3 style="color: white;">Calendário de Férias</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Visualize o calendário completo de férias</p>
+                </div>
+
+                <!-- Atividades -->
+                <div class="menu-item" onclick="window.location.href='atividades.html'" style="background: linear-gradient(135deg, #1976D2, #1565C0);">
+                    <i class="fas fa-chart-bar" style="color: white;"></i>
+                    <h3 style="color: white;">Atividades</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Visualize seus saldos e próximos eventos</p>
+                </div>
+
+                <!-- Perfil -->
+                <div class="menu-item" onclick="window.location.href='perfil.html'" style="background: linear-gradient(135deg, #2196F3, #1976D2);">
+                    <i class="fas fa-user" style="color: white;"></i>
+                    <h3 style="color: white;">Perfil</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Gerencie suas informações</p>
+                </div>
+
+                <!-- Feriados -->
+                <div class="menu-item" id="btnFeriados" style="background: linear-gradient(135deg, #0288D1, #0277BD);">
+                    <i class="fas fa-calendar" style="color: white;"></i>
+                    <h3 style="color: white;">Feriados 2025</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Consulte os feriados do ano</p>
+                </div>
+
+                <!-- Aniversários -->
+                <div class="menu-item" onclick="window.location.href='aniversarios.html'" style="background: linear-gradient(135deg, #26C6DA, #00BCD4);">
+                    <i class="fas fa-birthday-cake" style="color: white;"></i>
+                    <h3 style="color: white;">Aniversários</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Lista de aniversariantes</p>
+                </div>
+
+                <!-- Configurações -->
+                <div class="menu-item" onclick="window.location.href='configuracoes.html'" style="background: linear-gradient(135deg, #4FC3F7, #29B6F6);">
+                    <i class="fas fa-cogs" style="color: white;"></i>
+                    <h3 style="color: white;">Configurações</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Ajustes do sistema</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3">
+        <p class="mb-0">© 2025 Criado por: Marcelo S Ribeiro</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Função de logout
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao fazer logout:', error);
+            }
+        }
+
+        // Função para formatar data no padrão brasileiro
+        function formatarDataBR(data) {
+            const [ano, mes, dia] = data.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // Função para verificar próximo plantão
+        async function verificarProximoPlantao(userId) {
+            try {
+                const plantoesRef = ref(db, `plantoes/${userId}/registros`);
+                const snapshot = await get(plantoesRef);
+                
+                if (snapshot.exists()) {
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    
+                    let proximoPlantao = null;
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const plantao = childSnapshot.val();
+                        if (plantao.status !== 'cancelado') {
+                            const dataPlantao = new Date(plantao.data.split('/').reverse().join('-'));
+                            if (dataPlantao >= hoje) {
+                                if (!proximoPlantao || dataPlantao < new Date(proximoPlantao.data.split('/').reverse().join('-'))) {
+                                    proximoPlantao = plantao;
+                                }
+                            }
+                        }
+                    });
+                    
+                    if (proximoPlantao) {
+                        const dataPlantao = new Date(proximoPlantao.data.split('/').reverse().join('-'));
+                        const diasFaltando = Math.ceil((dataPlantao - hoje) / (1000 * 60 * 60 * 24));
+                        
+                        // Formatar a data para o padrão brasileiro
+                        const [ano, mes, dia] = proximoPlantao.data.split('-');
+                        const dataBR = `${dia}/${mes}/${ano}`;
+                        
+                        const alertaPlantao = document.getElementById('alertaPlantao');
+                        if (diasFaltando > 0) {
+                            alertaPlantao.innerHTML = `
+                                <i class="fas fa-clock"></i>
+                                Seu próximo plantão será em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataBR})
+                            `;
+                        } else if (diasFaltando === 0) {
+                            alertaPlantao.innerHTML = `
+                                <i class="fas fa-exclamation-circle"></i>
+                                Seu plantão é hoje! (${dataBR})
+                            `;
+                            alertaPlantao.style.backgroundColor = '#d4edda';
+                            alertaPlantao.style.color = '#155724';
+                            alertaPlantao.style.borderLeftColor = '#28a745';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao verificar próximo plantão:', error);
+            }
+        }
+
+        // Função para verificar próximas férias
+        async function verificarProximasFerias(userId) {
+            try {
+                const feriasRef = ref(db, `ferias/${userId}/registros`);
+                const snapshot = await get(feriasRef);
+                
+                if (snapshot.exists()) {
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    
+                    let proximasFerias = null;
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const ferias = childSnapshot.val();
+                        if (ferias.status !== 'cancelado') {
+                            const dataFerias = new Date(ferias.dataInicio.split('/').reverse().join('-'));
+                            if (dataFerias >= hoje) {
+                                if (!proximasFerias || dataFerias < new Date(proximasFerias.dataInicio.split('/').reverse().join('-'))) {
+                                    proximasFerias = ferias;
+                                }
+                            }
+                        }
+                    });
+                    
+                    if (proximasFerias) {
+                        const dataFerias = new Date(proximasFerias.dataInicio.split('/').reverse().join('-'));
+                        const diasFaltando = Math.ceil((dataFerias - hoje) / (1000 * 60 * 60 * 24));
+                        
+                        // Só mostrar alerta se faltam 15 dias ou menos
+                        if (diasFaltando <= 15) {
+                            // Formatar a data para o padrão brasileiro
+                            const [ano, mes, dia] = proximasFerias.dataInicio.split('/');
+                            const dataBR = `${dia}/${mes}/${ano}`;
+                            
+                            const alertaFerias = document.createElement('div');
+                            alertaFerias.className = 'alerta-plantao';
+                            alertaFerias.style.marginTop = '1rem';
+                            alertaFerias.style.backgroundColor = '#e3f2fd';
+                            alertaFerias.style.color = '#1976d2';
+                            alertaFerias.style.borderLeftColor = '#1976d2';
+                            
+                            if (diasFaltando > 0) {
+                                alertaFerias.innerHTML = `
+                                    <i class="fas fa-umbrella-beach"></i>
+                                    Suas férias começam em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataBR})
+                                `;
+                            } else if (diasFaltando === 0) {
+                                alertaFerias.innerHTML = `
+                                    <i class="fas fa-umbrella-beach"></i>
+                                    Suas férias começam hoje! (${dataBR})
+                                `;
+                                alertaFerias.style.backgroundColor = '#d4edda';
+                                alertaFerias.style.color = '#155724';
+                                alertaFerias.style.borderLeftColor = '#28a745';
+                            }
+                            
+                            document.getElementById('alertaPlantao').after(alertaFerias);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao verificar próximas férias:', error);
+            }
+        }
+
+        // Verificar se o usuário está autenticado
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+                if (usuarioLogado && usuarioLogado.nome) {
+                    document.getElementById('nomeUsuario').textContent = usuarioLogado.nome;
+                    verificarProximoPlantao(user.uid);
+                    verificarProximasFerias(user.uid);
+                }
+            }
+        });
+    </script>
+
+    <!-- Adicionar o modal de Feriados -->
+    <div class="modal fade" id="feriadosModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Feriados e Pontos Facultativos 2025
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="feriados-container">
+                        <!-- Janeiro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Janeiro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">01</span>
+                                    <span class="feriado-data-mes">JAN</span>
+                                    <span class="feriado-data-dia-semana">Quarta-feira</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Confraternização Universal</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">25</span>
+                                    <span class="feriado-data-mes">JAN</span>
+                                    <span class="feriado-data-dia-semana">Sábado</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Aniversário de São Paulo</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Feriado Municipal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fevereiro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Fevereiro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">12</span>
+                                    <span class="feriado-data-mes">FEV</span>
+                                    <span class="feriado-data-dia-semana">Quarta-feira</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Carnaval</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">13</span>
+                                    <span class="feriado-data-mes">FEV</span>
+                                    <span class="feriado-data-dia-semana">Quinta-feira</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Quarta-feira de Cinzas</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo até 14h</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Março -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Março 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">29</span>
+                                    <span class="feriado-data-mes">MAR</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Sexta-feira Santa</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Abril -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Abril 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">21</span>
+                                    <span class="feriado-data-mes">ABR</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Tiradentes</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Maio -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Maio 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">01</span>
+                                    <span class="feriado-data-mes">MAI</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Dia Mundial do Trabalho</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Junho -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Junho 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">20</span>
+                                    <span class="feriado-data-mes">JUN</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Corpus Christi</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Julho -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Julho 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">09</span>
+                                    <span class="feriado-data-mes">JUL</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Revolução Constitucionalista</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Feriado Estadual SP</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Setembro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Setembro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">07</span>
+                                    <span class="feriado-data-mes">SET</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Independência do Brasil</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Outubro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Outubro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">12</span>
+                                    <span class="feriado-data-mes">OUT</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Nossa Senhora Aparecida</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">28</span>
+                                    <span class="feriado-data-mes">OUT</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Dia do Servidor Público</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Novembro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Novembro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">02</span>
+                                    <span class="feriado-data-mes">NOV</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Finados</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">15</span>
+                                    <span class="feriado-data-mes">NOV</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Proclamação da República</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">20</span>
+                                    <span class="feriado-data-mes">NOV</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Consciência Negra</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Feriado Municipal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dezembro -->
+                        <div class="feriados-mes">
+                            <h2><i class="fas fa-calendar-alt"></i> Dezembro 2025</h2>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">24</span>
+                                    <span class="feriado-data-mes">DEZ</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Véspera de Natal</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo após 14h</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">25</span>
+                                    <span class="feriado-data-mes">DEZ</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Natal</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Feriado Nacional</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="feriado-item">
+                                <div class="feriado-data">
+                                    <span class="feriado-data-dia">31</span>
+                                    <span class="feriado-data-mes">DEZ</span>
+                                </div>
+                                <div class="feriado-info">
+                                    <div class="feriado-nome">Véspera de Ano Novo</div>
+                                    <div class="feriado-tipo">
+                                        <i class="fas fa-star"></i>
+                                        <span>Ponto Facultativo após 14h</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adicionar script para o modal -->
+    <script>
+        // Funções auxiliares para formatação
+        function getTipoIcon(tipo) {
+            switch(tipo.toUpperCase()) {
+                case 'NACIONAL': return 'fa-star';
+                case 'FACULTATIVO': return 'fa-clock';
+                case 'RECESSO': return 'fa-home';
+                case 'ESTADUAL': return 'fa-map-marker-alt';
+                case 'MUNICIPAL': return 'fa-city';
+                default: return 'fa-calendar';
+            }
+        }
+
+        function formatTipoFeriado(tipo) {
+            switch(tipo.toUpperCase()) {
+                case 'NACIONAL': return 'Feriado Nacional';
+                case 'FACULTATIVO': return 'Ponto Facultativo';
+                case 'RECESSO': return 'Recesso';
+                case 'ESTADUAL': return 'Feriado Estadual';
+                case 'MUNICIPAL': return 'Feriado Municipal';
+                default: return tipo;
+            }
+        }
+
+        document.getElementById('btnFeriados').addEventListener('click', async () => {
+            try {
+                const response = await fetch('feriados_2025.json');
+                const feriados = await response.json();
+                
+                let feriadosHTML = '';
+                let mesAtual = '';
+                let proximoFeriadoEncontrado = false;
+                const hoje = new Date();
+                
+                feriados.forEach(feriado => {
+                    const [dia, mes, ano] = feriado.data.split('/');
+                    const data = new Date(ano, mes - 1, dia);
+                    const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+                    const nomeMes = data.toLocaleDateString('pt-BR', { month: 'long' });
+                    
+                    const jaPassou = data < hoje;
+                    
+                    if (nomeMes !== mesAtual) {
+                        if (mesAtual !== '') {
+                            feriadosHTML += '</div>';
+                        }
+                        mesAtual = nomeMes;
+                        feriadosHTML += `
+                            <div class="feriados-mes">
+                                <h2><i class="fas fa-calendar-alt"></i> ${nomeMes} 2025</h2>
+                        `;
+                    }
+                    
+                    // Adicionar ID se for o próximo feriado
+                    const isProximoFeriado = !jaPassou && !proximoFeriadoEncontrado;
+                    if (isProximoFeriado) {
+                        proximoFeriadoEncontrado = true;
+                    }
+                    
+                    feriadosHTML += `
+                        <div class="feriado-item ${jaPassou ? 'passado' : ''}" ${isProximoFeriado ? 'id="proximoFeriado"' : ''}>
+                            <div class="feriado-data">
+                                <span class="feriado-data-dia">${dia}</span>
+                                <span class="feriado-data-mes">${nomeMes.substring(0,3).toUpperCase()}</span>
+                                <span class="feriado-data-dia-semana">${diaSemana}</span>
+                            </div>
+                            <div class="feriado-info">
+                                <div class="feriado-nome">${feriado.nome}</div>
+                                <div class="feriado-tipo">
+                                    <i class="fas ${getTipoIcon(feriado.tipo)}"></i>
+                                    <span>${formatTipoFeriado(feriado.tipo)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                if (mesAtual !== '') {
+                    feriadosHTML += '</div>';
+                }
+                
+                document.querySelector('.feriados-container').innerHTML = feriadosHTML;
+                
+                // Mostrar o modal
+                const feriadosModal = new bootstrap.Modal(document.getElementById('feriadosModal'));
+                feriadosModal.show();
+
+                // Rolar até o próximo feriado após o modal abrir
+                feriadosModal._element.addEventListener('shown.bs.modal', () => {
+                    const proximoFeriado = document.getElementById('proximoFeriado');
+                    if (proximoFeriado) {
+                        proximoFeriado.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        proximoFeriado.style.animation = 'highlight 2s ease';
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar feriados:', error);
+                alert('Erro ao carregar feriados. Por favor, tente novamente.');
+            }
+        });
+    </script>
+
+    <script>
+        // Função para atualizar data e hora no header
+        function atualizarRelogioHeader() {
+            const atualizarHora = () => {
+                const agora = new Date();
+                
+                // Atualizar hora
+                document.getElementById('headerTime').textContent = 
+                    agora.toLocaleTimeString('pt-BR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                
+                // Atualizar data
+                document.getElementById('headerDate').textContent = 
+                    agora.toLocaleDateString('pt-BR', { 
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long'
+                    });
+            };
+
+            // Atualizar imediatamente e depois a cada segundo
+            atualizarHora();
+            setInterval(atualizarHora, 1000);
+        }
+
+        // Chamar a função quando o documento carregar
+        document.addEventListener('DOMContentLoaded', atualizarRelogioHeader);
+    </script>
+
+    <!-- Adicionar função para verificar próximo plantão -->
+    <script>
+        async function verificarProximoPlantao(userId) {
+            try {
+                const plantoesRef = ref(db, `plantoes/${userId}/registros`);
+                const snapshot = await get(plantoesRef);
+                
+                if (snapshot.exists()) {
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    
+                    let proximoPlantao = null;
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const plantao = childSnapshot.val();
+                        if (plantao.status !== 'cancelado') {
+                            const dataPlantao = new Date(plantao.data.split('/').reverse().join('-'));
+                            if (dataPlantao >= hoje) {
+                                if (!proximoPlantao || dataPlantao < new Date(proximoPlantao.data.split('/').reverse().join('-'))) {
+                                    proximoPlantao = plantao;
+                                }
+                            }
+                        }
+                    });
+                    
+                    if (proximoPlantao) {
+                        const dataPlantao = new Date(proximoPlantao.data.split('/').reverse().join('-'));
+                        const diasFaltando = Math.ceil((dataPlantao - hoje) / (1000 * 60 * 60 * 24));
+                        
+                        // Formatar a data para o padrão brasileiro
+                        const [ano, mes, dia] = proximoPlantao.data.split('-');
+                        const dataBR = `${dia}/${mes}/${ano}`;
+                        
+                        const alertaPlantao = document.getElementById('alertaPlantao');
+                        if (diasFaltando > 0) {
+                            alertaPlantao.innerHTML = `
+                                <i class="fas fa-clock"></i>
+                                Seu próximo plantão será em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataBR})
+                            `;
+                        } else if (diasFaltando === 0) {
+                            alertaPlantao.innerHTML = `
+                                <i class="fas fa-exclamation-circle"></i>
+                                Seu plantão é hoje! (${dataBR})
+                            `;
+                            alertaPlantao.style.backgroundColor = '#d4edda';
+                            alertaPlantao.style.color = '#155724';
+                            alertaPlantao.style.borderLeftColor = '#28a745';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao verificar próximo plantão:', error);
+            }
+        }
+    </script>
+
+    <script>
+        // Função para verificar aniversariantes do mês
+        function verificarAniversariantesMes() {
+            const aniversarios = [
+                { nome: 'Marcelo Silva Ribeiro', data: '29/12' },
+                { nome: 'Marta Maria de Souza Pinto Silva', data: '28/02' },
+                { nome: 'Severino Caetano da Silva Filho', data: '26/03' },
+                { nome: 'Natalia Pereira Morais', data: '31/03' },
+                { nome: 'Wagner Waldir Leite', data: '07/04' },
+                { nome: 'Lloyd Hildevert Beteille Sobrinho', data: '12/04' },
+                { nome: 'Thais Helena Santos Camargo Simoes', data: '11/05' },
+                { nome: 'Nathany Gazolli de Souza', data: '23/09' },
+                { nome: 'Tatiana da Rocha Natale', data: '28/09' }
+            ];
+
+            const hoje = new Date();
+            const mesAtual = hoje.getMonth() + 1; // getMonth() retorna 0-11
+            const diaAtual = hoje.getDate();
+
+            console.log('Mês atual:', mesAtual); // Debug
+
+            const aniversariantesMes = aniversarios.filter(aniversario => {
+                const [dia, mes] = aniversario.data.split('/').map(Number);
+                console.log('Verificando:', aniversario.nome, 'mes:', mes); // Debug
+                return mes === mesAtual;
+            });
+
+            const alertaAniversario = document.getElementById('alertaAniversario');
+            
+            if (aniversariantesMes.length > 0) {
+                // Ordenar por dia
+                aniversariantesMes.sort((a, b) => {
+                    const diaA = parseInt(a.data.split('/')[0]);
+                    const diaB = parseInt(b.data.split('/')[0]);
+                    return diaA - diaB;
+                });
+
+                const nomesAniversariantes = aniversariantesMes.map(a => {
+                    const dia = a.data.split('/')[0];
+                    const jaPassou = parseInt(dia) < diaAtual;
+                    return `${a.nome} (dia ${dia}${jaPassou ? ' - já comemorado' : ''})`;
+                }).join(', ');
+
+                const meses = [
+                    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                ];
+
+                alertaAniversario.innerHTML = `
+                    <i class="fas fa-birthday-cake"></i>
+                    Aniversariantes de ${meses[mesAtual - 1]}: ${nomesAniversariantes}
+                `;
+                alertaAniversario.style.display = 'flex';
+                console.log('Alerta definido para:', alertaAniversario.innerHTML); // Debug
+            } else {
+                alertaAniversario.style.display = 'none';
+                console.log('Sem aniversariantes este mês'); // Debug
+            }
+        }
+
+        // Garantir que a função seja chamada após o carregamento completo
+        window.addEventListener('load', verificarAniversariantesMes);
+        document.addEventListener('DOMContentLoaded', verificarAniversariantesMes);
+    </script>
+</body>
+</html> 

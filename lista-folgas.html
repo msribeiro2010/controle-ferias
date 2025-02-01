@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Folgas • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .badge-realizado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-pendente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='controle.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <h1 class="nav-title">Lista de Folgas</h1>
+            </div>
+            <div class="nav-right">
+                <button onclick="exportarListaFolgas()" class="btn-outline">
+                    <i class="fas fa-file-export"></i>
+                    Exportar
+                </button>
+                <button onclick="window.location.href='index.html'" class="btn-outline">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Filtros -->
+            <div class="filter-container">
+                <div class="filter-group">
+                    <label for="filterMes">Mês</label>
+                    <select id="filterMes" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="01">Janeiro</option>
+                        <option value="02">Fevereiro</option>
+                        <option value="03">Março</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Maio</option>
+                        <option value="06">Junho</option>
+                        <option value="07">Julho</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Setembro</option>
+                        <option value="10">Outubro</option>
+                        <option value="11">Novembro</option>
+                        <option value="12">Dezembro</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterAno">Ano</label>
+                    <select id="filterAno" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterFuncionario">Funcionário</label>
+                    <select id="filterFuncionario" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Realizado">Realizado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabela de Folgas -->
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Funcionário</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaFolgasList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="lista-folgas.js"></script>
+</body>
+</html> 

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Aniversários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --secondary-color: #5C6BC0;
+            --background-color: #F5F7FA;
+            --card-color: #FFFFFF;
+        }
+
+        body {
+            background-color: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: #1976d2;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .aniversarios-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-color);
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+
+        .aniversario-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: transform 0.2s ease;
+        }
+
+        .aniversario-item:last-child {
+            border-bottom: none;
+        }
+
+        .aniversario-item:hover {
+            transform: translateX(10px);
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .aniversario-data {
+            background: linear-gradient(135deg, #FF4B82, #E91E63);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            min-width: 100px;
+            text-align: center;
+            margin-right: 1.5rem;
+        }
+
+        .aniversario-data-dia {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .aniversario-data-mes {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .aniversario-nome {
+            font-size: 1.1rem;
+            color: #2C3E50;
+        }
+
+        .proximo-aniversario {
+            background-color: #e3f2fd;
+            border-left: 4px solid #1976d2;
+        }
+
+        .btn-voltar {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-voltar:hover {
+            background-color: white;
+            color: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .aniversarios-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+
+            .aniversario-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .aniversario-data {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container py-2">
+            <a href="controle.html" class="btn-voltar">
+                <i class="fas fa-arrow-left"></i>
+                Voltar
+            </a>
+            <span class="navbar-brand mb-0 h1">Lista de Aniversários</span>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="aniversarios-container">
+            <div id="listaAniversarios">
+                <!-- Lista será preenchida via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const aniversarios = [
+            { nome: 'Marcelo Silva Ribeiro', data: '29/12' },
+            { nome: 'Marta Maria de Souza Pinto Silva', data: '28/02' },
+            { nome: 'Severino Caetano da Silva Filho', data: '26/03' },
+            { nome: 'Natalia Pereira Morais', data: '31/03' },
+            { nome: 'Wagner Waldir Leite', data: '07/04' },
+            { nome: 'Lloyd Hildevert Beteille Sobrinho', data: '12/04' },
+            { nome: 'Thais Helena Santos Camargo Simoes', data: '11/05' },
+            { nome: 'Nathany Gazolli de Souza', data: '23/09' },
+            { nome: 'Tatiana da Rocha Natale', data: '28/09' }
+        ];
+
+        function ordenarPorData(a, b) {
+            const [diaA, mesA] = a.data.split('/').map(Number);
+            const [diaB, mesB] = b.data.split('/').map(Number);
+            
+            if (mesA !== mesB) return mesA - mesB;
+            return diaA - diaB;
+        }
+
+        function getNomeMes(mes) {
+            const meses = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+            return meses[mes - 1];
+        }
+
+        function isProximoAniversario(data) {
+            const hoje = new Date();
+            const [dia, mes] = data.split('/').map(Number);
+            const mesAtual = hoje.getMonth() + 1;
+            const diaAtual = hoje.getDate();
+
+            if (mes === mesAtual) {
+                return dia >= diaAtual;
+            }
+            return mes > mesAtual;
+        }
+
+        function renderizarAniversarios() {
+            const aniversariosOrdenados = [...aniversarios].sort(ordenarPorData);
+            const container = document.getElementById('listaAniversarios');
+            let html = '';
+
+            aniversariosOrdenados.forEach(aniversario => {
+                const [dia, mes] = aniversario.data.split('/').map(Number);
+                const proximo = isProximoAniversario(aniversario.data);
+
+                html += `
+                    <div class="aniversario-item ${proximo ? 'proximo-aniversario' : ''}">
+                        <div class="aniversario-data">
+                            <div class="aniversario-data-dia">${dia}</div>
+                            <div class="aniversario-data-mes">${getNomeMes(mes).substring(0, 3)}</div>
+                        </div>
+                        <div class="aniversario-nome">${aniversario.nome}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Renderizar lista quando a página carregar
+        document.addEventListener('DOMContentLoaded', renderizarAniversarios);
+    </script>
+</body>
+</html> 

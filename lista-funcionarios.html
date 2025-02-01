@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Funcionários • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo para registros realizados */
+        .registro-realizado {
+            font-style: italic;
+            color: #78909c !important;
+            background-color: #f5f5f5;
+        }
+
+        .registro-realizado td {
+            opacity: 0.8;
+        }
+
+        /* Estilos para os badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-presencial {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .badge-remoto {
+            background-color: #e3f2fd;
+            color: #2196f3;
+        }
+
+        .badge-realizado {
+            background-color: #e8f5e9 !important;
+            color: #43a047 !important;
+            font-style: italic;
+        }
+
+        .badge-em-andamento {
+            background-color: #fff3e0 !important;
+            color: #ef6c00 !important;
+        }
+
+        .badge-pendente {
+            background-color: #e3f2fd !important;
+            color: #1976d2 !important;
+        }
+
+        /* Garantir que os badges mantenham o estilo dentro de registros realizados */
+        .registro-realizado .badge {
+            opacity: 1;
+        }
+
+        /* Estilo para a tabela */
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table td, .table th {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            flex: 1;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .badge-presencial {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-remoto {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .badge-plantao {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-folga {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='trabalho.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <h1 class="nav-title">Lista de Funcionários</h1>
+            </div>
+            <div class="nav-right">
+                <button onclick="exportarLista()" class="btn-outline">
+                    <i class="fas fa-file-export"></i>
+                    Exportar
+                </button>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <div class="main-content">
+            <!-- Filtros -->
+            <div class="filter-container">
+                <div class="filter-group">
+                    <label for="filterData">Data</label>
+                    <input type="text" id="filterData" placeholder="DD/MM/YYYY" maxlength="10" onchange="aplicarFiltros()">
+                </div>
+                <div class="filter-group">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus" onchange="aplicarFiltros()">
+                        <option value="">Todos</option>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Remoto">Remoto</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabela de Funcionários -->
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Status</th>
+                            <th>Horário</th>
+                            <th>Observações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaFuncionariosList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.appspot.com",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let funcionarios = [];
+
+        // Verificar autenticação
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                setDataAtual();
+                atualizarDataHora();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Função para formatar data no padrão brasileiro
+        function formatarDataBR(data) {
+            const dia = String(data.getDate()).padStart(2, '0');
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // Função para converter data BR para objeto Date
+        function converterDataBRParaDate(dataBR) {
+            const [dia, mes, ano] = dataBR.split('/');
+            return new Date(ano, mes - 1, dia);
+        }
+
+        // Função para validar formato da data
+        function validarFormatoData(data) {
+            const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(20)\d\d$/;
+            return regex.test(data);
+        }
+
+        // Função para carregar funcionários
+        async function carregarFuncionarios() {
+            try {
+                const dataBR = document.getElementById('filterData').value;
+                if (!validarFormatoData(dataBR)) {
+                    console.error('Formato de data inválido');
+                    return;
+                }
+                
+                console.log('Data selecionada:', dataBR);
+                
+                // Buscar todos os usuários
+                const usersRef = ref(db, 'users');
+                const usersSnapshot = await get(usersRef);
+                const usuarios = {};
+                
+                if (usersSnapshot.exists()) {
+                    usersSnapshot.forEach((userSnap) => {
+                        usuarios[userSnap.key] = userSnap.val();
+                    });
+                }
+
+                // Buscar registros de trabalho
+                const trabalhoRef = ref(db, 'trabalho');
+                const trabalhoSnap = await get(trabalhoRef);
+
+                funcionarios = [];
+
+                // Processar cada usuário
+                if (trabalhoSnap.exists()) {
+                    const trabalhoData = trabalhoSnap.val();
+
+                    for (const [userId, trabalhoUser] of Object.entries(trabalhoData)) {
+                        const userData = usuarios[userId];
+                        if (!userData) continue;
+
+                        // Verificar modalidade
+                        if (trabalhoUser && trabalhoUser.modalidade) {
+                            Object.entries(trabalhoUser.modalidade).forEach(([modalidadeId, modalidade]) => {
+                                // Formatar a data do registro para comparação
+                                const dataRegistro = modalidade.data ? formatarData(modalidade.data) : null;
+                                
+                                console.log('Verificando modalidade:', {
+                                    nome: userData.nome,
+                                    dataOriginal: modalidade.data,
+                                    dataFormatada: dataRegistro,
+                                    dataBusca: dataBR,
+                                    tipo: modalidade.tipo
+                                });
+
+                                if (dataRegistro === dataBR && 
+                                    (modalidade.tipo === 'Presencial' || modalidade.tipo === 'Remoto')) {
+                                    funcionarios.push({
+                                        nome: userData.nome,
+                                        status: modalidade.tipo,
+                                        horario: '08:00 - 17:00',
+                                        observacao: modalidade.observacao || ''
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+
+                // Ordenar por nome
+                funcionarios.sort((a, b) => a.nome.localeCompare(b.nome));
+                console.log('Funcionários processados:', funcionarios);
+
+                aplicarFiltros();
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+            }
+        }
+
+        // Função para aplicar filtros
+        window.aplicarFiltros = function() {
+            const status = document.getElementById('filterStatus').value;
+            
+            let funcionariosFiltrados = [...funcionarios];
+            
+            if (status) {
+                funcionariosFiltrados = funcionariosFiltrados.filter(f => f.status === status);
+            }
+            
+            exibirFuncionarios(funcionariosFiltrados);
+        }
+
+        // Função para exibir funcionários
+        function exibirFuncionarios(lista) {
+            const tbody = document.getElementById('listaFuncionariosList');
+            tbody.innerHTML = '';
+            
+            if (lista.length > 0) {
+                lista.forEach(func => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${func.nome}</td>
+                        <td>
+                            <span class="badge badge-${func.status.toLowerCase()}">
+                                ${func.status}
+                            </span>
+                        </td>
+                        <td>${func.horario}</td>
+                        <td>${func.observacao}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            Nenhum funcionário encontrado
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Função para atualizar data e hora
+        function atualizarDataHora() {
+            const atualizarHora = () => {
+                const agora = new Date();
+                document.getElementById('current-time').textContent = 
+                    agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('current-date').textContent = 
+                    agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+            };
+
+            atualizarHora();
+            setInterval(atualizarHora, 1000);
+        }
+
+        // Função para exportar lista
+        window.exportarLista = async function() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const dataBR = document.getElementById('filterData').value;
+                const dataFormatada = new Date(converterDataBRParaDate(dataBR)).toLocaleDateString('pt-BR');
+                
+                // Configurar título
+                doc.setFontSize(16);
+                doc.text(`Lista de Funcionários - ${dataFormatada}`, 15, 15);
+                
+                // Preparar dados
+                const dados = funcionarios.map(f => ({
+                    nome: f.nome,
+                    status: f.status,
+                    horario: f.horario,
+                    observacao: f.observacao
+                }));
+                
+                // Definir colunas
+                const colunas = [
+                    { header: 'Nome', dataKey: 'nome' },
+                    { header: 'Status', dataKey: 'status' },
+                    { header: 'Horário', dataKey: 'horario' },
+                    { header: 'Observações', dataKey: 'observacao' }
+                ];
+                
+                // Criar tabela
+                doc.autoTable({
+                    startY: 25,
+                    head: [colunas.map(col => col.header)],
+                    body: dados.map(item => colunas.map(col => item[col.dataKey])),
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [74, 144, 226],
+                        textColor: 255,
+                        fontSize: 12,
+                        halign: 'center'
+                    },
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 5,
+                        halign: 'center'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 247, 250]
+                    }
+                });
+                
+                // Salvar PDF
+                doc.save(`lista-funcionarios_${dataBR}.pdf`);
+                
+            } catch (error) {
+                console.error('Erro ao exportar PDF:', error);
+                alert('Erro ao exportar PDF: ' + error.message);
+            }
+        }
+
+        // Função para definir a data atual
+        function setDataAtual() {
+            const hoje = new Date();
+            const dataFormatada = formatarDataBR(hoje);
+            
+            console.log('Data atual:', dataFormatada);
+            document.getElementById('filterData').value = dataFormatada;
+            carregarFuncionarios();
+        }
+
+        // Atualizar o event listener do DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            setDataAtual();
+        });
+
+        // Atualizar o event listener do input de data
+        document.getElementById('filterData').addEventListener('input', (e) => {
+            let valor = e.target.value;
+            
+            // Adicionar barras automaticamente
+            valor = valor.replace(/\D/g, ''); // Remove não-dígitos
+            if (valor.length >= 2) valor = valor.substring(0,2) + '/' + valor.substring(2);
+            if (valor.length >= 5) valor = valor.substring(0,5) + '/' + valor.substring(5);
+            e.target.value = valor;
+            
+            // Validar e carregar quando completo
+            if (valor.length === 10 && validarFormatoData(valor)) {
+                carregarFuncionarios();
+            }
+        });
+    </script>
+</body>
+</html> 

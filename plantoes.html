@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantões • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo para os botões */
+        .btn-outline {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-outline i {
+            color: white;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Ajuste para os botões de ação */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Estilo para botões primários */
+        .btn-primary {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Estilo específico para o botão Registrar Plantão */
+        #plantaoForm .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        #plantaoForm .btn-primary:hover {
+            background: linear-gradient(135deg, #43A047, #388E3C);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Estilo específico para o botão Solicitar Folga */
+        #folgaForm .btn-primary {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        #folgaForm .btn-primary:hover {
+            background: linear-gradient(135deg, #1E88E5, #1565C0);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        /* Efeito de clique */
+        .btn-primary:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Ícones dos botões */
+        .btn-primary i {
+            font-size: 1.3rem;
+        }
+
+        /* Estilo para botões secundários */
+        .btn-secondary {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            background-color: #357ABD;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Estilos para os badges de status */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .badge-pendente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-realizado {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .stat-value {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-edit {
+            background: none;
+            border: none;
+            color: #2196f3;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-edit:hover {
+            background-color: #e3f2fd;
+            transform: scale(1.1);
+        }
+
+        /* Estilo para o modal de edição */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #1976d2;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Adicionar estilo para o botão de lixeira */
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-delete:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Estilo para as opções de horário */
+        .horario-options {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .horario-option {
+            flex: 1;
+        }
+
+        .horario-option input[type="radio"] {
+            display: none;
+        }
+
+        .horario-label {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .horario-label i {
+            font-size: 1.5rem;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .horario-texto {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .horario-texto strong {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Estilo quando selecionado */
+        .horario-option input[type="radio"]:checked + .horario-label {
+            border-color: #1976d2;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        }
+
+        .horario-option input[type="radio"]:checked + .horario-label i {
+            color: #1976d2;
+        }
+
+        /* Hover effect */
+        .horario-label:hover {
+            border-color: #1976d2;
+            background: #f5f9ff;
+        }
+
+        /* Ícones específicos */
+        #horarioManha + .horario-label i {
+            color: #FF9800;
+        }
+
+        #horarioTarde + .horario-label i {
+            color: #3F51B5;
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .horario-options {
+                flex-direction: column;
+            }
+        }
+
+        /* Estilo para os badges de tipo */
+        .tipo-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tipo-badge i {
+            font-size: 1rem;
+        }
+
+        /* Cores específicas para cada tipo */
+        .tipo-badge.plantao {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #1565C0;
+        }
+
+        .tipo-badge.recesso {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+        }
+
+        .tipo-badge.feriado {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1.5rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .tab i {
+            font-size: 1.4rem;
+        }
+
+        /* Estilo para tab de Plantões */
+        .tab[data-tab="plantoes"] {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .tab[data-tab="plantoes"]:hover {
+            background: linear-gradient(135deg, #43A047, #388E3C);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Estilo para tab de Folgas */
+        .tab[data-tab="folgas"] {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .tab[data-tab="folgas"]:hover {
+            background: linear-gradient(135deg, #1E88E5, #1565C0);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        /* Estilo para tab ativa */
+        .tab.active {
+            transform: translateY(-2px);
+            position: relative;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.8);
+        }
+
+        /* Atualizar o estilo do botão Registrar Plantão */
+        button[type="submit"] {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            background: linear-gradient(135deg, #43A047, #388E3C);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Estilo específico para o botão Registrar Plantão */
+        #plantaoForm button[type="submit"] {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        #plantaoForm button[type="submit"]:hover {
+            background: linear-gradient(135deg, #43A047, #388E3C);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Manter o botão Solicitar Folga em azul */
+        #folgaForm button[type="submit"] {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        #folgaForm button[type="submit"]:hover {
+            background: linear-gradient(135deg, #1E88E5, #1565C0);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+
+        /* Estilo específico para o ícone de café */
+        .tab[data-tab="folgas"] i {
+            font-size: 1.5rem;
+            transform: rotate(-10deg);
+            transition: all 0.3s ease;
+        }
+
+        .tab[data-tab="folgas"]:hover i {
+            transform: rotate(5deg) translateY(-2px);
+        }
+
+        /* Ajustar o efeito de vapor */
+        .tab[data-tab="folgas"] i::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab[data-tab="folgas"]:hover i::after {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+
+        /* Atualizar o estilo dos botões da navegação */
+        .nav-right .btn-outline {
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 12px;
+            gap: 0.8rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-left: 1rem;
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        /* Estilo específico para cada botão */
+        .nav-right .btn-outline:nth-child(1) { /* Lista de Plantões */
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+        }
+
+        .nav-right .btn-outline:nth-child(2) { /* Lista de Folgas */
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border: none;
+        }
+
+        .nav-right .btn-outline:nth-child(3) { /* Exportar */
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            border: none;
+        }
+
+        .nav-right .btn-outline:nth-child(4) { /* Sair */
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            border: none;
+        }
+
+        /* Efeito hover para os botões */
+        .nav-right .btn-outline:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Ícones dos botões */
+        .nav-right .btn-outline i {
+            font-size: 1.2rem;
+        }
+
+        /* Ajuste do container dos botões */
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='controle.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <h1 class="nav-title">Plantões</h1>
+            </div>
+            <div class="nav-right">
+                <button onclick="window.location.href='lista-plantoes.html'" class="btn-outline">
+                    <i class="fas fa-list"></i>
+                    Lista de Plantões
+                </button>
+                <button onclick="window.location.href='lista-folgas.html'" class="btn-outline">
+                    <i class="fas fa-coffee"></i>
+                    Lista de Folgas
+                </button>
+                <button onclick="exportarHistorico()" class="btn-outline">
+                    <i class="fas fa-file-export"></i>
+                    Exportar
+                </button>
+                <button onclick="window.location.href='index.html'" class="btn-outline">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Layout em Colunas -->
+        <div class="columns-layout">
+            <!-- Coluna Esquerda: Formulários -->
+            <div class="column left-column">
+                <!-- Estatísticas -->
+                <div class="stats-container">
+                    <div class="stats-card">
+                        <div class="stat-item">
+                            <i class="fas fa-calendar-check stat-icon"></i>
+                            <div class="stat-info">
+                                <div class="stat-value">
+                                    <span id="totalPlantoes">0</span>
+                                    <button class="btn-edit" onclick="editarSaldoFolgas()" title="Editar saldo de plantões">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                                <div class="stat-label">Plantões Realizados</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="stat-item">
+                            <i class="fas fa-umbrella-beach stat-icon"></i>
+                            <div class="stat-info">
+                                <div class="stat-value" id="saldoFolgas">0</div>
+                                <div class="stat-label">Folgas Disponíveis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário de registro de plantão -->
+                <div class="form-section">
+                    <h2><i class="fas fa-plus-circle"></i> Registrar Novo Plantão</h2>
+                    <form id="formPlantao" class="registro-form">
+                        <div class="form-group">
+                            <label for="dataPlantao">Data do Plantão</label>
+                            <input type="date" id="dataPlantao" required class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Horário do Plantão</label>
+                            <div class="horario-options">
+                                <div class="horario-option">
+                                    <input type="radio" id="horarioManha" name="horarioPlantao" value="MANHA" checked>
+                                    <label for="horarioManha" class="horario-label">
+                                        <i class="fas fa-sun"></i>
+                                        <span class="horario-texto">
+                                            <strong>Manhã</strong>
+                                            09:00 - 12:00
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="horario-option">
+                                    <input type="radio" id="horarioTarde" name="horarioPlantao" value="TARDE">
+                                    <label for="horarioTarde" class="horario-label">
+                                        <i class="fas fa-moon"></i>
+                                        <span class="horario-texto">
+                                            <strong>Tarde</strong>
+                                            14:00 - 18:00
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i>
+                            Registrar Plantão
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Formulário de Folga -->
+                <div class="form-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-coffee"></i> Nova Folga</h2>
+                    </div>
+                    <form id="folgaForm" class="card-content">
+                        <div class="input-group">
+                            <label for="dataFolga">Data da Folga</label>
+                            <div class="date-field">
+                                <i class="fas fa-calendar input-icon"></i>
+                                <input type="date" id="dataFolga" required>
+                                <span class="weekday" id="folgaWeekday"></span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-coffee"></i>
+                            Solicitar Folga
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Histórico -->
+            <div class="column right-column">
+                <div class="history-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Histórico</h2>
+                        <div class="header-actions">
+                            <button class="btn-outline" onclick="exportarHistorico()">
+                                <i class="fas fa-file-export"></i>
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="tabs-container">
+                        <div class="tabs">
+                            <button class="tab active" data-tab="plantoes">
+                                <i class="fas fa-calendar-check"></i> Plantões
+                            </button>
+                            <button class="tab" data-tab="folgas">
+                                <i class="fas fa-coffee"></i> Folgas
+                            </button>
+                        </div>
+
+                        <!-- Conteúdo das Tabs -->
+                        <div class="tab-content active" id="plantoes-tab">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Dia</th>
+                                            <th>Tipo</th>
+                                            <th>Horário</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historicoPlantoesList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="folgas-tab">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Dia</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historicoFolgasList"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="plantoes.js"></script>
+
+    <!-- Adicionar modal de edição -->
+    <div id="modalEditarSaldo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Saldo de Folgas</h3>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label for="saldoFolgasInput">Saldo de Folgas Anterior</label>
+                    <input type="number" id="saldoFolgasInput" min="0" class="form-input">
+                    <small class="input-help">Insira o saldo de folgas de anos anteriores</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="fecharModal()">Cancelar</button>
+                <button class="btn-primary" onclick="salvarSaldoFolgas()">
+                    <i class="fas fa-save"></i>
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

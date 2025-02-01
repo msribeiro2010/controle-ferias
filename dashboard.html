@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Férias</title>
+    
+    <!-- Favicon com fallback -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Fallback para favicon se não existir -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏖️</text></svg>">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAABKBJREFUWEe9V21sU1UYfu7H2q7r1nUfbKPbGGMwxgYMAcMQg0RNBNFEiYmJ0R8k/PCHJv7wjyb+UH/4Q2OMiTEm/tIYE6MkJCSiEgEFDGMbDGQwxvgYY2zr1rVd17W995x73ts7YFvH2Qp3TdPec855n/O8z/O+5xbhHj1kT+4xwmCIQNKEe7UHPM+DZVlwHId0Os1ls9mA1+utFgShBEAEgPxvADDGQJ8sy0qSJF3geT4vSVI6EomkPR7P0EMA0P0D4DgOsViMi0ajAsdxJMMwzMNJQPecc9Ln8wWj0WiNIAglABgAZe4EyNs5AKBQKCAej3PRaFQQRVHgOE4ihHCPJAHGGCilTKFQKAaDwWA4HK6mlEoAigByd0WAEIJcLofR0VFheHhYEARBopQKhBDpUSVAKWWFQiEXCoWC4XC4hlIqE0JkAEV6BwIcxyGTyWB0dFQYGhoSJEkSKKUiIUR+VAQopUyhUMiFw+FgJBKpoZTKAIoA8nMmwHEcxsfHMTIyIgwODgqSJAmUUpEQojwKApRSWigUcpFIJBiNRmsopXR6z80hwXEcUqkURkZGhIGBAUGWZYFSKhJC1IeZAKWUFovFXDQaDUaj0VpKKZ0RfUYCHMchmUxidHRU6O/vF2RZFiilEiFEexgEKKW0WCzmampqgtFotI5SSgEUZ0Q/kwDHcRgfH8fY2JjQ19cnyLIsUkolQoj+fyZAKaWlUilXW1sbjEajDyb6mQQ4jsPY2BgSiYTQ29sryLIsUkolQojxfxAolUq5urq6YDQafTDRzyTAcRwSiQTGx8eF7u5uQZZlkVIqE0LM+0mAUkrL5XKuvr4+GIvFGiilFEBpRvQzCXAch+HhYSSTSaGrq0uQZVmklMqEEOs+EaCU0nK5nGtoaAjGYrFGSikFUJoV/WwSDA0NIZVKCTdv3hRkWRYppTIhxL4XApRSWqlUck1NTcFYLNZIKaUASrOin02CoaEhpFIpoaOjQ5BlWaSUyoQQ514IUEpppVLJNTc3B2OxWBOllAIozYp+NgkGBweRTqeF9vZ2QZZlkVIqE0Kc/0qAUkqr1WqupaUlGIvFmimlFEB5VvSzSTAwMIB0Oi20tbUJsiyLlFKZEOLeDQFKKa1Wq7mWlpZgQ0NDM6WUAijPin42Cfr7+5HJZISWlhZBlmWRUioTQtz/RIBSSqvVaq61tTXY0NDQTCmlAMpzRT+bBH19fcjlckJzc7Mgy7JIKZUJIe7dEKCU0mq1mnv88cfDDQ0NLZRSCqA8V/SzSdDb24t8Pi80NjYKsiyLlFKZEOK5GwKUUlqtVnPt7e3hhoaGFkopBVCeK/rZJOjp6UGhUBAaGhoEWZZFSqlMCPHeDQFKKa3VarnOzs5wfX19K6WUAijPFf1sEnR3d6NYLPJ1dXWCLMsipVQmhPjuhgCllNZqtVxnZ2e4vr6+lVJKAZTnin42Cbq6ulAqlfi6ujpBlmWRUioTQvx3Q4BSSmu1Wu7UqVPh+vr6VkopBVCeK/rZJLh+/TrK5TJfW1sryLIsUkplQkjgbghQSmm9Xs+dPn06XFdX10YppQDKc0U/mwRXr15FpVLha2pqBFmWRUqpTAgJ/hMBnU7HnTlzJlxbW9tGKaUAKvNFP5sEV65cQbVa5aurqwVZlkVKqUwICf0dxV8BXxZ+kWehm3QAAAAASUVORK5CYII=">
+</head>
+<body class="loading">
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="datetime-display">
+                    <div class="time" id="current-time">10:06</div>
+                    <div class="date" id="current-date">24 de Janeiro de 2025</div>
+                </div>
+
+                <h1 class="header-title">Painel de Férias</h1>
+
+                <div class="header-buttons">
+                    <button onclick="window.location.href='calendario-ferias.html'" class="btn-calendario">
+                        <i class="fas fa-calendar"></i>
+                        <span>Calendário</span>
+                    </button>
+                    <button id="btnFeriados" class="btn-feriados">
+                        <i class="fas fa-calendar"></i> Feriados 2025
+                    </button>
+                    <button id="btnLogout" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="d-flex justify-content-start mb-4" style="margin-top: 1rem;">
+            <button class="btn btn-voltar" onclick="window.location.href='controle.html'">
+                <i class="fas fa-arrow-left me-2"></i>
+                Voltar ao Painel
+            </button>
+        </div>
+
+        <div class="dashboard-buttons">
+            <button onclick="window.location.href='calendario-ferias.html'" class="btn-dashboard">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Calendário de Férias</span>
+            </button>
+        </div>
+
+        <div class="main-content">
+            <div class="adicionar-ferias-container">
+                <h2>Registrar Férias</h2>
+                <form id="adicionarFeriasForm">
+                    <div class="data-ferias-container">
+                        <div class="data-inicio">
+                            <label for="dataInicio">Data de Início</label>
+                            <input type="date" id="dataInicio" required>
+                        </div>
+                        <div class="data-fim">
+                            <label for="dataFim">Data de Término</label>
+                            <input type="date" id="dataFim" required>
+                        </div>
+                        <div class="dias-ferias">
+                            <label for="diasFerias">Dias de Férias</label>
+                            <input type="number" id="diasFerias" readonly>
+                        </div>
+                    </div>
+                    <button type="submit">Registrar Período de Férias</button>
+                </form>
+            </div>
+
+            <div class="historico-ferias-container">
+                <h2>Histórico de Férias</h2>
+                <table id="historicoTable">
+                    <thead>
+                        <tr>
+                            <th>Período</th>
+                            <th>Data de Início</th>
+                            <th>Data de Término</th>
+                            <th>Dias de Férias</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historicoCorpo">
+                        <!-- Períodos de férias serão adicionados dinamicamente aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <!-- O botão será inserido aqui via JavaScript -->
+            
+            <!-- Container para feriados do mês -->
+            <div class="dashboard-section">
+                <div id="feriados-mes" class="feriados-container">
+                    <div class="feriados-mes">
+                        <h2><i class="fas fa-calendar-alt"></i> Feriados de Janeiro 2025</h2>
+                        <div class="feriado-item">
+                            <div class="feriado-data">
+                                <span class="feriado-data-dia">01</span>
+                                <span class="feriado-data-mes">Jan</span>
+                                <span class="feriado-data-semana">Qua</span>
+                            </div>
+                            <div class="feriado-info">
+                                <div class="feriado-nome">Confraternização Universal</div>
+                                <div class="feriado-tipo">
+                                    <i class="fas fa-flag"></i>
+                                    Feriado Nacional
+                                </div>
+                                <div class="feriado-recesso">
+                                    <i class="fas fa-clock"></i>
+                                    Recesso: 30/12 - 02/01
+                                </div>
+                            </div>
+                        </div>
+                        <div class="feriado-item">
+                            <div class="feriado-data">
+                                <span class="feriado-data-dia">25</span>
+                                <span class="feriado-data-mes">Jan</span>
+                                <span class="feriado-data-semana">Sáb</span>
+                            </div>
+                            <div class="feriado-info">
+                                <div class="feriado-nome">Aniversário de São Paulo</div>
+                                <div class="feriado-tipo">
+                                    <i class="fas fa-building"></i>
+                                    Feriado Municipal
+                                </div>
+                                <div class="feriado-recesso">
+                                    <i class="fas fa-clock"></i>
+                                    Recesso: 25/01 - 26/01
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resto do conteúdo do dashboard -->
+        </div>
+
+        <footer>
+            <p>&copy; 2025 Sistema de Gestão de Férias. Desenvolvido por Marcelo Ribeiro. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script type="module" src="dashboard-auth.js" defer></script>
+    <script>
+        // Remove a classe de carregamento após o carregamento da página
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.remove('loading');
+        });
+    </script>
+    <script>
+        // Função para calcular dias até as próximas férias
+        function calculateDaysUntilVacation() {
+            const today = new Date();
+            const nextVacation = new Date('2025-04-06'); // Último dia antes do início das férias em 07/04
+            const diffTime = nextVacation.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Função para atualizar o contador de dias
+        function updateVacationCountdown() {
+            const daysLeft = calculateDaysUntilVacation();
+            const countdownElement = document.getElementById('vacation-countdown');
+            if (countdownElement) {
+                countdownElement.innerHTML = `Faltam <span class="countdown-number">${daysLeft}</span> dias para suas próximas férias`;
+            }
+        }
+
+        // Atualiza o contador quando a página carrega
+        document.addEventListener('DOMContentLoaded', function() {
+            updateVacationCountdown();
+        });
+    </script>
+    <script>
+        // Função para atualizar a hora e data
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Atualiza hora
+            const timeElement = document.getElementById('current-time');
+            timeElement.textContent = now.toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).replace(':', ' : ');
+            
+            // Atualiza data
+            const dateElement = document.getElementById('current-date');
+            const options = { 
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long'
+            };
+            dateElement.textContent = now.toLocaleDateString('pt-BR', options);
+        }
+
+        // Atualiza a cada segundo
+        setInterval(updateDateTime, 1000);
+        
+        // Primeira atualização
+        updateDateTime();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatarContainer = document.querySelector('.employee-avatar');
+            const avatarUpload = document.querySelector('.employee-avatar-upload');
+            const avatarPreview = document.querySelector('#avatarPreview');
+            const avatarIcon = document.querySelector('.employee-avatar i');
+
+            // Função para atualizar a visualização do avatar
+            function updateAvatarDisplay(imageUrl) {
+                if (imageUrl) {
+                    avatarPreview.src = imageUrl;
+                    avatarPreview.style.display = 'block';
+                    avatarIcon.style.display = 'none';
+                    avatarContainer.classList.add('has-image');
+                } else {
+                    avatarPreview.style.display = 'none';
+                    avatarIcon.style.display = 'block';
+                    avatarContainer.classList.remove('has-image');
+                }
+            }
+
+            // Carregar avatar salvo
+            const savedAvatar = localStorage.getItem('userAvatar');
+            if (savedAvatar) {
+                updateAvatarDisplay(savedAvatar);
+            }
+
+            // Gerenciar upload de avatar
+            avatarUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Verificar tipo de arquivo
+                    if (!file.type.startsWith('image/')) {
+                        alert('Por favor, selecione apenas arquivos de imagem.');
+                        return;
+                    }
+
+                    // Verificar tamanho do arquivo (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('A imagem deve ter no máximo 5MB.');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageUrl = e.target.result;
+                        
+                        // Otimizar imagem antes de salvar
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Redimensionar para no máximo 300x300 mantendo proporção
+                            let width = img.width;
+                            let height = img.height;
+                            const maxSize = 300;
+                            
+                            if (width > height) {
+                                if (width > maxSize) {
+                                    height *= maxSize / width;
+                                    width = maxSize;
+                                }
+                            } else {
+                                if (height > maxSize) {
+                                    width *= maxSize / height;
+                                    height = maxSize;
+                                }
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Desenhar imagem redimensionada
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Converter para JPEG com qualidade 0.8
+                            const optimizedImageUrl = canvas.toDataURL('image/jpeg', 0.8);
+                            
+                            // Atualizar preview e salvar
+                            updateAvatarDisplay(optimizedImageUrl);
+                            localStorage.setItem('userAvatar', optimizedImageUrl);
+                        };
+                        img.src = imageUrl;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Permitir clicar no avatar para fazer upload
+            avatarContainer.addEventListener('click', function() {
+                avatarUpload.click();
+            });
+
+            // Adicionar tooltip
+            avatarContainer.title = 'Clique para alterar a foto';
+        });
+    </script>
+    <script type="module">
+        import { auth } from './firebase-config.js';
+        import { signOut } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+        // Botão de sair
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('usuarioLogado');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Erro ao sair:', error);
+                alert('Não foi possível sair. Tente novamente.');
+            }
+        });
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        header {
+            background: linear-gradient(135deg, #3498db, #2980b9, #2c3e50);
+            color: white;
+            padding: 15px 0;
+            margin: -20px -20px 20px -20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .datetime-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-calendario {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            height: 26px;
+            min-width: 0;
+        }
+
+        .btn-calendario i {
+            font-size: 0.8rem;
+        }
+
+        .btn-calendario span {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .btn-calendario:hover {
+            background-color: #1976d2;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .header-title {
+            color: white;
+            font-size: 2em;
+            font-weight: 500;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        .time {
+            font-size: 3em;
+            font-weight: 200;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+            line-height: 1;
+            color: white;
+        }
+
+        .date {
+            font-size: 0.95em;
+            opacity: 0.9;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-transform: capitalize;
+            color: white;
+        }
+
+        .employee-info-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .employee-info {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .employee-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5em;
+            overflow: hidden;
+        }
+
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .employee-avatar:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .employee-avatar:hover::after {
+            content: '\\f030';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            z-index: 2;
+        }
+
+        .employee-avatar-upload {
+            display: none;
+        }
+
+        .employee-avatar.has-image {
+            background: none;
+        }
+
+        .employee-avatar.has-image i {
+            display: none;
+        }
+
+        #avatarPreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .employee-details {
+            flex: 1;
+        }
+
+        .employee-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .employee-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .employee-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        .employee-meta-item i {
+            color: #3498db;
+            font-size: 1.1em;
+        }
+
+        .ferias-restantes {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .ferias-restantes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .ferias-restantes::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+        }
+
+        .ferias-info {
+            position: relative;
+            padding: 10px 0;
+        }
+
+        .ferias-valor {
+            font-size: 3.5em;
+            font-weight: 600;
+            color: #2ecc71;
+            line-height: 1;
+            font-feature-settings: "tnum";
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ferias-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            display: block;
+            margin-top: 8px;
+        }
+
+        .ferias-icon {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 80px;
+            height: 80px;
+            opacity: 0.05;
+            transform: rotate(-15deg);
+        }
+
+        .historico-ferias-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .adicionar-ferias-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .adicionar-ferias-container h2 {
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-style: italic;
+            text-shadow: none;
+        }
+
+        .historico-ferias-container h2 {
+            color: #3498db;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-style: italic;
+            text-shadow: none;
+        }
+
+        .ferias-restantes h2 {
+            color: #3498db;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+            font-style: italic;
+            text-shadow: none;
+        }
+
+        .feriados-mes h2 {
+            color: #3498db;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-style: italic;
+            text-shadow: none;
+        }
+
+        .adicionar-ferias-container button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .adicionar-ferias-container button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .data-ferias-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        button[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        /* Melhorias nos estados de hover */
+        .btn-feriados:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-logout:hover {
+            background-color: #c0392b;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .employee-info-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .data-ferias-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+                width: 100%;
+            }
+            
+            .btn-calendario {
+                padding: 0.2rem 0.4rem;
+                font-size: 0.7rem;
+                height: 24px;
+            }
+            
+            .btn-calendario i {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Estilos de carregamento */
+        body.loading * {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        body:not(.loading) {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .historico-ferias-container table tr.periodo-passado {
+            color: #7f8c8d;
+            background-color: #f9f9f9;
+        }
+
+        .historico-ferias-container table tr.periodo-passado:hover {
+            background-color: #f5f5f5;
+        }
+
+        .historico-ferias-container table tr.periodo-passado td {
+            font-style: italic;
+        }
+
+        .ferias-info {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 0.7em;
+            border: 1px solid #eee;
+        }
+
+        .ferias-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ferias-label {
+            color: #666;
+            font-size: 0.75em;
+        }
+
+        .ferias-valor {
+            color: #2980b9;
+            font-weight: 500;
+            font-size: 0.75em;
+        }
+
+        .saldo-atual {
+            margin-top: 2px;
+            padding-top: 4px !important;
+        }
+
+        .saldo-atual .ferias-valor {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .saldo-baixo .ferias-valor {
+            color: #e74c3c;
+        }
+
+        .ferias-restantes h2 {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .feriados-mes {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feriados-mes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
+        }
+
+        .feriados-mes h2 {
+            color: #2c3e50;
+            font-size: 0.95em;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feriados-mes h2 i {
+            color: #3498db;
+            font-size: 1.1em;
+            background: rgba(52, 152, 219, 0.1);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .feriado-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 0 -25px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: default;
+        }
+
+        .feriado-item:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .feriado-item:not(:last-child) {
+            border-bottom: 1px solid rgba(52, 152, 219, 0.1);
+        }
+
+        .feriado-data {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            width: 65px;
+            height: 65px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feriado-data::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .feriado-data-dia {
+            font-size: 1.8em;
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .feriado-data-mes {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .feriado-data-semana {
+            font-size: 0.65em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .feriado-info {
+            flex: 1;
+        }
+
+        .feriado-nome {
+            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-size: 1.1em;
+        }
+
+        .feriado-tipo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+
+        .feriado-tipo i {
+            color: #3498db;
+            font-size: 0.9em;
+            background: rgba(52, 152, 219, 0.1);
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .feriado-recesso {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85em;
+            color: #27ae60;
+        }
+
+        .feriado-recesso i {
+            color: #27ae60;
+            font-size: 0.9em;
+            background: rgba(46, 204, 113, 0.1);
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .vacation-countdown {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            font-weight: 400;
+            text-align: center;
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .countdown-number {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #3498db;
+            display: inline-block;
+            margin: 0 3px;
+        }
+
+        .btn-voltar {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .btn-voltar:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+    </style>
+</body>
+</html>

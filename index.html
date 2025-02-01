@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Controle de Férias - NAPJe</title>
+    
+    <!-- Favicon com fallback -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Fallback para favicon se não existir -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏖️</text></svg>">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+        import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        const dbRef = ref(database);
+
+        // Login Form
+        const loginForm = document.getElementById('loginForm');
+        const loginMensagem = document.getElementById('login-mensagem');
+        const loadingOverlay = document.querySelector('.loading-overlay');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            // Mostrar loading
+            loadingOverlay.style.display = 'flex';
+            loginMensagem.textContent = 'Realizando login...';
+            loginMensagem.className = '';
+
+            try {
+                // Buscar email do usuário pelo username
+                const usersRef = ref(database, 'users');
+                const usersSnapshot = await get(usersRef);
+                
+                let userEmail = null;
+                let userData = null;
+                
+                usersSnapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.username === username) {
+                        userEmail = user.email;
+                        userData = user;
+                        return true; // Break the forEach loop
+                    }
+                });
+
+                if (!userEmail) {
+                    throw new Error('Usuário não encontrado');
+                }
+
+                // Adicionar timeout de 15 segundos
+                const loginPromise = signInWithEmailAndPassword(auth, userEmail, senha);
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout: O login demorou muito tempo')), 15000)
+                );
+
+                const userCredential = await Promise.race([loginPromise, timeoutPromise]);
+                const user = userCredential.user;
+
+                // Salvar dados do usuário no localStorage
+                localStorage.setItem('usuarioLogado', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    nome: userData.nome,
+                    username: userData.username,
+                    totalFerias: userData.totalFerias || 30,
+                    feriasUtilizadas: userData.feriasUtilizadas || 0,
+                    historicoFerias: userData.historicoFerias || []
+                }));
+
+                // Redirecionar para controle.html
+                window.location.href = 'controle.html';
+            } catch (error) {
+                console.error('Erro de login:', error);
+                
+                // Tratar mensagens de erro específicas
+                let mensagemErro = 'Erro ao fazer login. Tente novamente.';
+                
+                if (error.message === 'Timeout: O login demorou muito tempo') {
+                    mensagemErro = 'O login está demorando muito. Por favor, tente novamente.';
+                } else if (error.message === 'Usuário não encontrado') {
+                    mensagemErro = 'Usuário não encontrado.';
+                } else if (error.code === 'auth/wrong-password') {
+                    mensagemErro = 'Senha incorreta.';
+                } else if (error.code === 'auth/user-not-found') {
+                    mensagemErro = 'Usuário não encontrado.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    mensagemErro = 'Muitas tentativas de login. Tente novamente mais tarde.';
+                }
+
+                loginMensagem.textContent = mensagemErro;
+                loginMensagem.className = 'error-message';
+                
+                // Esconder loading
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // Registro Form
+        const registroForm = document.getElementById('registroForm');
+        const registroMensagem = document.getElementById('registro-mensagem');
+
+        registroForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('registroNome').value;
+            const username = document.getElementById('registroUsername').value;
+            const email = document.getElementById('registroEmail').value;
+            const senha = document.getElementById('registroSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            if (senha !== confirmarSenha) {
+                registroMensagem.textContent = 'Senhas não conferem';
+                registroMensagem.style.color = 'red';
+                return;
+            }
+
+            try {
+                // Verificar se o username já existe
+                const snapshot = await get(child(dbRef, 'users'));
+                const users = snapshot.val();
+                
+                const usernameExists = Object.values(users || {}).some(
+                    userData => userData.username === username
+                );
+
+                if (usernameExists) {
+                    registroMensagem.textContent = 'Nome de usuário já existe';
+                    registroMensagem.style.color = 'red';
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                const user = userCredential.user;
+
+                // Salvar dados adicionais do usuário no Realtime Database
+                await set(ref(database, 'users/' + user.uid), {
+                    nome: nome,
+                    username: username,
+                    email: email,
+                    totalFerias: 30,
+                    feriasUtilizadas: 0,
+                    historicoFerias: []
+                });
+
+                registroMensagem.textContent = 'Registro realizado com sucesso!';
+                registroMensagem.style.color = 'green';
+
+                // Limpar formulário
+                registroForm.reset();
+            } catch (error) {
+                registroMensagem.textContent = 'Erro ao registrar: ' + error.message;
+                registroMensagem.style.color = 'red';
+                console.error('Erro de registro:', error);
+            }
+        });
+
+        // Toggle between login and registro
+        const loginToggle = document.getElementById('loginToggle');
+        const registroToggle = document.getElementById('registroToggle');
+        const loginContainer = document.getElementById('login-container');
+        const registroContainer = document.getElementById('registro-container');
+
+        loginToggle.addEventListener('click', () => {
+            loginContainer.style.display = 'block';
+            registroContainer.style.display = 'none';
+            loginToggle.classList.add('active');
+            registroToggle.classList.remove('active');
+        });
+
+        registroToggle.addEventListener('click', () => {
+            loginContainer.style.display = 'none';
+            registroContainer.style.display = 'block';
+            loginToggle.classList.remove('active');
+            registroToggle.classList.add('active');
+        });
+    </script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-wrapper {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header i {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .login-header h1 {
+            color: #2c3e50;
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .login-toggle {
+            display: flex;
+            margin-bottom: 30px;
+            background: #f7f9fc;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .login-toggle button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-toggle button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #95a5a6;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn-login, .btn-registro {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-login:hover, .btn-registro:hover {
+            background: linear-gradient(to right, #2980b9, #2c3e50);
+            transform: translateY(-1px);
+        }
+
+        .mensagem {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background-color: #fdecea;
+            color: #e74c3c;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .success-message {
+            background-color: #edfaf1;
+            color: #2ecc71;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* Loading Overlay com gradiente */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-text {
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .login-wrapper {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);
+            padding: 2rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .login-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: #4A90E2;
+            animation: pulse 2s infinite;
+        }
+
+        .login-icon:hover {
+            animation: wobble 1s ease;
+        }
+
+        .form-control {
+            border: 2px solid #e1e1e1;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .input-group-text {
+            background: linear-gradient(135deg, #4A90E2, #5C6BC0);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-group-text i {
+            transition: transform 0.3s ease;
+        }
+
+        .input-group:hover .input-group-text i {
+            transform: scale(1.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4A90E2, #5C6BC0);
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wobble {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Loading mais estilizado */
+        .loading-overlay {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4A90E2;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Mensagens de feedback */
+        .alert-success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f44336, #e53935);
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Realizando login...</div>
+    </div>
+
+    <div class="login-container">
+        <div class="login-wrapper">
+            <div class="login-header">
+                <i class="fas fa-users"></i>
+                <h1>Gerenciador de Trabalho - NAPje</h1>
+                <p>Bem-vindo! Faça login para continuar</p>
+            </div>
+
+            <div class="login-toggle">
+                <button id="loginToggle" class="active">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button id="registroToggle">
+                    <i class="fas fa-user-plus"></i> Registrar
+                </button>
+            </div>
+
+            <div id="login-container">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Nome de Usuário</label>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="loginUsername" required placeholder="Digite seu usuário">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginSenha">Senha</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="loginSenha" required placeholder="Digite sua senha">
+                    </div>
+                    <div id="login-mensagem" class="mensagem"></div>
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
+                </form>
+            </div>
+
+            <div id="registro-container" style="display: none;">
+                <form id="registroForm">
+                    <div class="form-group">
+                        <label for="registroNome">Nome Completo</label>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="registroNome" required placeholder="Digite seu nome completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="registroUsername">Nome de Usuário</label>
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" id="registroUsername" required placeholder="Escolha um nome de usuário">
+                    </div>
+                    <div class="form-group">
+                        <label for="registroEmail">Email</label>
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="registroEmail" required placeholder="Digite seu email">
+                    </div>
+                    <div class="form-group">
+                        <label for="registroSenha">Senha</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="registroSenha" required placeholder="Crie uma senha">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmarSenha">Confirmar Senha</label>
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmarSenha" required placeholder="Confirme sua senha">
+                    </div>
+                    <div id="registro-mensagem" class="mensagem"></div>
+                    <button type="submit" class="btn-registro">
+                        <i class="fas fa-user-plus"></i> Criar Conta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

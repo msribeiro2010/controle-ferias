@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Plantões • NAPJe</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilo moderno para a página */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .top-nav {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(25, 118, 210, 0.15);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .datetime-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+
+        .time {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 0.2rem;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+            outline: none;
+        }
+
+        .btn-primary, .btn-outline {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #1976d2;
+            color: #1976d2;
+        }
+
+        .btn-outline:hover {
+            background: #f0f7ff;
+        }
+
+        .list-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 0;
+            color: #1976d2;
+        }
+
+        .summary {
+            background: #e3f2fd;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            padding: 1.2rem 1rem;
+            text-align: left;
+            color: #666;
+            font-weight: 500;
+            border-bottom: 2px solid #eee;
+        }
+
+        .data-table td {
+            padding: 1.2rem 1rem;
+            border-bottom: 1px solid #eee;
+            color: #333;
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-agendado {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            color: #1565C0;
+        }
+
+        .status-agendado i {
+            color: #1976D2;
+        }
+
+        .status-concluido {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            color: #2E7D32;
+        }
+
+        .status-concluido i {
+            color: #43A047;
+        }
+
+        .status-cancelado {
+            background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+            color: #C62828;
+        }
+
+        .status-cancelado i {
+            color: #E53935;
+        }
+
+        .data-cell {
+            font-weight: 500;
+            color: #1976D2;
+        }
+
+        .horario-cell {
+            color: #1976D2;
+            font-family: 'Inter', monospace;
+            font-weight: 500;
+            background: linear-gradient(135deg, #E3F2FD, #F5F9FF);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .horario-cell i {
+            color: #1565C0;
+            font-size: 0.9rem;
+        }
+
+        .funcionario-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .funcionario-cell i {
+            color: #1976D2;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 1rem;
+            }
+
+            .filters-section {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+
+            .nav-left {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+
+        /* Estilo para o badge de tipo */
+        .tipo-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+            color: #6A1B9A;
+        }
+
+        .tipo-badge i {
+            color: #8E24AA;
+            font-size: 0.9rem;
+        }
+
+        /* Diferentes cores para cada tipo */
+        .tipo-badge.feriado {
+            background: linear-gradient(135deg, #E8EAF6, #C5CAE9);
+            color: #283593;
+        }
+
+        .tipo-badge.recesso {
+            background: linear-gradient(135deg, #E0F7FA, #B2EBF2);
+            color: #006064;
+        }
+
+        .tipo-badge.plantao {
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+            color: #6A1B9A;
+        }
+
+        /* Estilo para plantões realizados */
+        .plantao-realizado {
+            background-color: #f5f5f5;
+            font-style: italic;
+            color: #666;
+        }
+
+        .plantao-realizado td {
+            opacity: 0.8;
+        }
+
+        .plantao-realizado .status-badge {
+            background: linear-gradient(135deg, #E0E0E0, #BDBDBD);
+            color: #424242;
+        }
+
+        .plantao-realizado .horario-cell i,
+        .plantao-realizado .tipo-badge i {
+            opacity: 0.7;
+        }
+
+        /* Ajuste para melhor legibilidade */
+        .plantao-realizado .tipo-badge {
+            background: linear-gradient(135deg, #EEEEEE, #E0E0E0);
+            color: #424242;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navegação Superior -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <button onclick="window.location.href='plantoes.html'" class="back-button">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Voltar</span>
+                </button>
+                <h1 class="nav-title">Lista de Plantões</h1>
+            </div>
+            <div class="datetime-display">
+                <div class="time" id="current-time">12:00</div>
+                <div class="date" id="current-date">25 de Janeiro</div>
+            </div>
+        </nav>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label for="filterMes">Mês:</label>
+                <select id="filterMes" class="filter-select">
+                    <option value="">Todos</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterAno">Ano:</label>
+                <select id="filterAno" class="filter-select">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterFuncionario">Funcionário:</label>
+                <select id="filterFuncionario" class="filter-select">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <button class="btn-primary" onclick="aplicarFiltros()">
+                <i class="fas fa-filter"></i>
+                Aplicar Filtros
+            </button>
+            <button class="btn-outline" onclick="exportarListaPlantoes()">
+                <i class="fas fa-file-export"></i>
+                Exportar
+            </button>
+        </div>
+
+        <!-- Lista de Plantões -->
+        <div class="list-card">
+            <div class="card-header">
+                <h2><i class="fas fa-calendar-check"></i> Plantões</h2>
+                <div class="summary">
+                    <span id="totalPlantoes">0</span> plantões encontrados
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Funcionário</th>
+                            <th>Tipo</th>
+                            <th>Horário</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaPlantoesList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script type="module" src="lista-plantoes.js"></script>
+</body>
+</html>

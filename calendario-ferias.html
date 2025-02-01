@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário de Férias</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .historico-title {
+            color: #2c3e50;
+            margin: 30px 0 20px 0;
+            font-size: 1.5em;
+            font-weight: 600;
+            padding-left: 10px;
+            border-left: 4px solid #3498db;
+        }
+        #ferias-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        #ferias-table th, #ferias-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        #ferias-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        #ferias-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        #ferias-table td.conflito {
+            background-color: #ffe6e6;
+        }
+        #ferias-table td.mes-atual {
+            background-color: #e8f4fd;
+            font-weight: 500;
+        }
+        #ferias-table tr.mes-atual:hover {
+            background-color: #d1e8f8;
+        }
+        #ferias-table td.conflito.mes-atual {
+            background-color: #ffe6e6;
+        }
+        /* Alinhamento das colunas */
+        #ferias-table th:nth-child(1),
+        #ferias-table td:nth-child(1) { /* Nome */
+            text-align: left;
+            width: 20%;
+            padding-left: 20px;
+        }
+
+        #ferias-table th:nth-child(2),
+        #ferias-table td:nth-child(2) { /* Período */
+            text-align: center;
+            width: 35%;
+        }
+
+        #ferias-table th:nth-child(3),
+        #ferias-table td:nth-child(3) { /* Dias */
+            text-align: center;
+            width: 20%;
+        }
+
+        #ferias-table th:nth-child(4),
+        #ferias-table td:nth-child(4) { /* Status */
+            text-align: center;
+            width: 25%;
+        }
+        .btn-voltar {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-top: 50px;
+        }
+        .error-message {
+            text-align: center;
+            color: #e74c3c;
+            margin-top: 50px;
+            font-size: 18px;
+        }
+        .legenda {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .legenda-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legenda-cor {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        .legenda-cor.mes-atual {
+            background-color: #e8f4fd;
+        }
+        .legenda-cor.conflito {
+            background-color: #ffe6e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <i class="fas fa-calendar-alt"></i> Calendário de Férias
+            </h1>
+            <a href="dashboard.html" class="btn-voltar">
+                <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </header>
+
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Carregando calendário...
+        </div>
+
+        <div id="error" class="error-message" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i> Erro ao carregar calendário
+        </div>
+
+        <h2 class="historico-title">Histórico de Férias</h2>
+        
+        <table id="ferias-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Período de Férias</th>
+                    <th>Dias de Férias</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="ferias-body">
+                <!-- Dados serão inseridos via JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="legenda">
+            <div class="legenda-item">
+                <div class="legenda-cor mes-atual"></div>
+                <span>Mês Atual</span>
+            </div>
+            <div class="legenda-item">
+                <div class="legenda-cor conflito"></div>
+                <span>Conflito</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.firebasestorage.app",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+        // Elementos da página
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+        const tabelaFerias = document.getElementById('ferias-table');
+        const tabelaBody = document.getElementById('ferias-body');
+
+        // Verificar autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                // Mostrar loading
+                loadingElement.style.display = 'block';
+                tabelaFerias.style.display = 'none';
+                errorElement.style.display = 'none';
+
+                const snapshot = await get(ref(database, 'users'));
+                const users = snapshot.val();
+
+                // Limpar tabela anterior
+                tabelaBody.innerHTML = '';
+
+                // Coletar todos os períodos de férias
+                const todosPeriodos = [];
+
+                // Coletar e ordenar todos os períodos
+                Object.values(users).forEach(userData => {
+                    if (userData.historicoFerias && userData.historicoFerias.length > 0) {
+                        userData.historicoFerias.forEach(ferias => {
+                            todosPeriodos.push({
+                                nome: userData.nome,
+                                inicio: new Date(ferias.dataInicio + 'T00:00:00'),
+                                fim: new Date(ferias.dataFim + 'T00:00:00'),
+                                diasFerias: ferias.diasFerias,
+                                dados: ferias
+                            });
+                        });
+                    }
+                });
+
+                // Ordenar períodos por data de início
+                todosPeriodos.sort((a, b) => a.inicio - b.inicio);
+
+                // Obter mês e ano atual
+                const hoje = new Date();
+                const mesAtual = hoje.getMonth();
+                const anoAtual = hoje.getFullYear();
+
+                // Preencher tabela com períodos ordenados
+                todosPeriodos.forEach(periodo => {
+                    const linha = document.createElement('tr');
+                    
+                    // Verificar conflitos
+                    const conflito = todosPeriodos.some(outroPeriodo => 
+                        periodo !== outroPeriodo && (
+                            (periodo.inicio >= outroPeriodo.inicio && periodo.inicio <= outroPeriodo.fim) ||
+                            (periodo.fim >= outroPeriodo.inicio && periodo.fim <= outroPeriodo.fim) ||
+                            (periodo.inicio <= outroPeriodo.inicio && periodo.fim >= outroPeriodo.fim)
+                        )
+                    );
+
+                    // Verificar se o período está no mês atual
+                    const mesInicio = periodo.inicio.getMonth();
+                    const mesFim = periodo.fim.getMonth();
+                    const anoInicio = periodo.inicio.getFullYear();
+                    const anoFim = periodo.fim.getFullYear();
+                    
+                    const periodoNoMesAtual = (
+                        (mesInicio === mesAtual && anoInicio === anoAtual) ||
+                        (mesFim === mesAtual && anoFim === anoAtual) ||
+                        (periodo.inicio <= hoje && periodo.fim >= hoje)
+                    );
+
+                    // Verificar status
+                    const status = periodo.fim < hoje ? 'Usufruído' : 'Registrado';
+
+                    // Adicionar classe para mês atual
+                    if (periodoNoMesAtual) {
+                        linha.classList.add('mes-atual');
+                    }
+
+                    linha.innerHTML = `
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${periodo.nome}</td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">
+                            ${periodo.inicio.toLocaleDateString()} - 
+                            ${periodo.fim.toLocaleDateString()}
+                        </td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${periodo.diasFerias}</td>
+                        <td class="${conflito ? 'conflito' : ''} ${periodoNoMesAtual ? 'mes-atual' : ''}">${status}</td>
+                    `;
+
+                    tabelaBody.appendChild(linha);
+                });
+
+                // Esconder loading, mostrar tabela
+                loadingElement.style.display = 'none';
+                tabelaFerias.style.display = 'table';
+
+            } catch (error) {
+                console.error('Erro ao carregar férias:', error);
+                
+                // Mostrar erro
+                loadingElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Não foi possível carregar o calendário de férias. 
+                    Tente novamente mais tarde.
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
