@@ -502,6 +502,80 @@
                 window.location.href = 'index.html';
             }
         });
+
+        function atualizarDadosCards(userData) {
+            console.log('Dados recebidos:', userData); // Debug
+
+            // Saldo de Férias
+            if (userData.ferias) {
+                console.log('Dados de férias:', userData.ferias);
+                document.getElementById('saldoFerias').textContent = userData.ferias.saldo || '--';
+                document.getElementById('proximasFerias').innerHTML = `
+                    <i class="fas fa-calendar-alt"></i>
+                    Próximo período: ${userData.ferias.proximo || 'Não agendado'}
+                `;
+            }
+
+            // Plantões
+            if (userData.plantoes) {
+                console.log('Dados de plantões:', userData.plantoes);
+                const total = userData.plantoes.length || 0;
+                document.getElementById('totalPlantoes').textContent = total;
+                document.getElementById('progressoPlantoes').style.width = `${(total/5)*100}%`;
+                
+                const proximoPlantao = userData.plantoes.find(p => new Date(p.data) > new Date());
+                document.getElementById('proximoPlantao').innerHTML = proximoPlantao ? `
+                    <i class="fas fa-calendar-check"></i>
+                    Próximo: ${proximoPlantao.data}
+                ` : 'Nenhum plantão agendado';
+            }
+
+            // Banco de Horas
+            if (userData.bancoHoras) {
+                console.log('Dados de banco de horas:', userData.bancoHoras);
+                const saldo = userData.bancoHoras.saldo || 0;
+                document.getElementById('bancoHoras').textContent = `${saldo}h`;
+                document.getElementById('progressoBanco').style.width = `${Math.min(Math.abs(saldo)/40*100, 100)}%`;
+                
+                const tendencia = userData.bancoHoras.tendencia || 0;
+                document.getElementById('tendenciaBanco').innerHTML = `
+                    <i class="fas fa-arrow-${tendencia >= 0 ? 'up' : 'down'}"></i>
+                    ${Math.abs(tendencia)}h ${tendencia >= 0 ? 'acumuladas' : 'utilizadas'} este mês
+                `;
+            }
+
+            // Licenças
+            if (userData.licencas && userData.licencas.length > 0) {
+                console.log('Dados de licenças:', userData.licencas);
+                const tbody = document.querySelector('#tabelaLicencas tbody');
+                tbody.innerHTML = userData.licencas.map(l => `
+                    <tr>
+                        <td>${l.tipo}</td>
+                        <td>${l.data}</td>
+                        <td><span class="badge bg-${l.status === 'Aprovada' ? 'success' : 'warning'}">${l.status}</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            // Eventos
+            if (userData.eventos && userData.eventos.length > 0) {
+                console.log('Dados de eventos:', userData.eventos);
+                document.getElementById('listaEventos').innerHTML = userData.eventos
+                    .filter(e => new Date(e.data) > new Date())
+                    .sort((a, b) => new Date(a.data) - new Date(b.data))
+                    .map(e => `
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${e.titulo}</h6>
+                                <small>${e.data}</small>
+                            </div>
+                            <small class="text-muted">${e.descricao}</small>
+                        </div>
+                    `).join('');
+            } else {
+                console.log('Nenhum dado encontrado para o usuário');
+            }
+        }
     </script>
 </body>
 </html> 
