@@ -729,6 +729,21 @@
             background: rgba(255, 255, 255, 0.2);
             transform: rotate(10deg);
         }
+
+        .btn-notas-adesivas {
+            background: #ffca28;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            color: #333;
+            transition: background 0.2s ease;
+        }
+
+        .btn-notas-adesivas:hover {
+            background: #fdd835;
+        }
     </style>
 </head>
 <body>
@@ -811,6 +826,15 @@
                     <i class="fas fa-calendar-week" style="color: white;"></i>
                     <h3 style="color: white;">Calendário de Férias</h3>
                     <p style="color: rgba(255,255,255,0.9);">Visualize o calendário completo de férias</p>
+                </div>
+
+                <!-- Notas Adesivas (NOVO) -->
+                <div class="menu-item"
+                     onclick="window.open('notas-adesivas.html', '_blank')"
+                     style="background: linear-gradient(135deg, #FFC107, #FFA000);">
+                    <i class="fas fa-sticky-note" style="color: white;"></i>
+                    <h3 style="color: white;">Notas Adesivas</h3>
+                    <p style="color: rgba(255,255,255,0.9);">Crie e edite notas livremente</p>
                 </div>
 
                 <!-- Atividades -->

@@ -960,3 +960,128 @@ function getTipoIcon(tipo) {
     };
     return icons[tipo] || 'fa-calendar';
 }
+
+function carregarHistoricoPlantoes() {
+    const historicoList = document.getElementById('historicoPlantoesList');
+    const userId = auth.currentUser.uid;
+    const plantoesRef = ref(db, `plantoes/${userId}/registros`);
+
+    get(plantoesRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            let plantoes = [];
+            snapshot.forEach((childSnapshot) => {
+                const plantao = childSnapshot.val();
+                plantoes.push({
+                    id: childSnapshot.key,
+                    ...plantao
+                });
+            });
+
+            // Log para debug: antes da ordenação
+            console.log('Antes da ordenação:', plantoes.map(p => p.data));
+
+            // Ordenar do mais antigo para o mais recente
+            plantoes.sort((a, b) => {
+                // Extrai dia, mês, ano
+                const [diaA, mesA, anoA] = a.data.split('/').map(Number);
+                const [diaB, mesB, anoB] = b.data.split('/').map(Number);
+                
+                const dateA = new Date(anoA, mesA - 1, diaA).getTime();
+                const dateB = new Date(anoB, mesB - 1, diaB).getTime();
+
+                return dateA - dateB; // Mais antigo primeiro (ascendente)
+            });
+
+            // Log para debug: depois da ordenação
+            console.log('Depois da ordenação:', plantoes.map(p => p.data));
+
+            let html = '';
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
+            // Montar o HTML do histórico
+            plantoes.forEach(plantao => {
+                const [dia, mes, ano] = plantao.data.split('/').map(Number);
+                const dataPlantao = new Date(ano, mes - 1, dia);
+                const diaSemana = dataPlantao.toLocaleDateString('pt-BR', {
+                    weekday: 'long'
+                });
+
+                const status = plantao.status || 'agendado';
+                let statusClass = '';
+                let statusText = '';
+                let acoes = '';
+
+                switch(status) {
+                    case 'realizado':
+                        statusClass = 'badge-success';
+                        statusText = 'Realizado';
+                        break;
+                    case 'cancelado':
+                        statusClass = 'badge-danger';
+                        statusText = 'Cancelado';
+                        break;
+                    default:
+                        statusClass = dataPlantao < hoje ? 'badge-warning' : 'badge-primary';
+                        statusText = dataPlantao < hoje ? 'Pendente' : 'Agendado';
+                        if (dataPlantao >= hoje && status !== 'cancelado') {
+                            acoes = `
+                                <button class="btn-action cancel" onclick="cancelarPlantao('${plantao.id}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                        }
+                        if (dataPlantao < hoje && status === 'agendado') {
+                            acoes = `
+                                <button class="btn-action complete" onclick="marcarRealizado('${plantao.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            `;
+                        }
+                }
+
+                html += `
+                    <tr>
+                        <td>${plantao.data}</td>
+                        <td>${diaSemana}</td>
+                        <td>
+                            <span class="tipo-badge plantao">
+                                <i class="fas fa-calendar-check"></i>
+                                Plantão
+                            </span>
+                        </td>
+                        <td>${plantao.horario || '09:00 - 12:00'}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td class="actions">${acoes}</td>
+                    </tr>
+                `;
+            });
+
+            historicoList.innerHTML = html;
+        } else {
+            historicoList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center">Nenhum plantão registrado.</td>
+                </tr>
+            `;
+        }
+    }).catch((error) => {
+        console.error("Erro ao carregar histórico:", error);
+        historicoList.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-danger">Erro ao carregar histórico.</td>
+            </tr>
+        `;
+    });
+}
+
+// Atualizar também a função de carregar histórico de folgas
+function carregarHistoricoFolgas() {
+    // Implementação similar para folgas...
+}
+
+// Chamar as funções quando a página carregar
+document.addEventListener('DOMContentLoaded', () => {
+    carregarHistoricoPlantoes();
+    carregarHistoricoFolgas();
+});

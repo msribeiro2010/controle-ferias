@@ -138,6 +138,27 @@
         .legenda-cor.conflito {
             background-color: #ffe6e6;
         }
+        /* Ajustes para deixar o botão Calendário mais compacto */
+        .btn-calendario {
+            padding: 0.1rem 0.3rem;
+            font-size: 0.65rem;
+            background-color: #fff;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            height: 22px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center; /* Centraliza o texto/ícone */
+        }
+
+        .btn-calendario:hover {
+            background-color: #1976d2;
+            color: #fff;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -149,6 +170,15 @@
             <a href="dashboard.html" class="btn-voltar">
                 <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
             </a>
+
+            <!-- Botão “Calendário de Férias” colocado no header -->
+            <button class="btn-calendario">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Calendário de Férias</span>
+            </button>
+
+            <!-- Se houver um botão de feriados, você pode colocá-lo aqui -->
+            <!-- <button id="btnFeriados" class="btn-feriados">Feriados</button> -->
         </header>
 
         <div id="loading" class="loading">

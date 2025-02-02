@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- Fonte Google: Poppins -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <meta charset="UTF-8">
+  <title>Notas Adesivas</title>
+  <style>
+    /* Layout geral */
+    body, html {
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5; /* Fundo neutro estilo "profissional" */
+      font-family: 'Poppins', sans-serif;
+      user-select: none; /* Evita seleção involuntária durante drag */
+      height: 100%;
+    }
+
+    /* Um container central para dar mais estrutura */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+      position: relative; /* para que as notas fiquem dentro do container */
+    }
+
+    header {
+      background: #2c3e50; /* Tom elegante de azul-escuro */
+      color: #fff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      position: sticky;
+      top: 0;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    header button, #btnNovaNota {
+      background: #ffca28;
+      color: #333;
+      padding: 0.4rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      font-size: 0.95rem;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    header button:hover {
+      background: #ffd73b;
+    }
+
+    /* Exemplo de outras cores para as notas */
+    .note-yellow   { background: #fffa75; }
+    .note-green    { background: #bfff80; }
+    .note-pink     { background: #ffc0cb; }
+    .note-blue     { background: #afefff; }
+    .note-purple   { background: #d4b3ff; }
+
+    .note {
+      position: absolute;
+      width: 200px;
+      min-height: 100px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      /* Permitir redimensionar a nota */
+      resize: both;
+      overflow: auto;
+      min-width: 150px;
+      padding: 0.5rem;
+      cursor: move; /* Mostra que é arrastável */
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-sizing: border-box;
+    }
+
+    /* Animação ao pairar sobre a nota */
+    .note:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 10; /* Fica em destaque sobre outras notas */
+    }
+
+    .note textarea {
+      width: 100%;
+      height: 80px;
+      border: none;
+      background: transparent;
+      resize: none;
+      font-size: 1rem;
+      outline: none;
+      font-family: inherit;
+      cursor: text; /* dentro do textarea, cursor de edição */
+    }
+
+    /* Pequeno ajuste para o container de escolha de cor */
+    .color-picker {
+      display: flex;
+      gap: 4px;
+      margin-top: 0.3rem;
+    }
+    .color-picker button {
+      width: 18px;
+      height: 18px;
+      display: none; /* Vamos remover esse picker fixo */
+    }
+
+    .note .close-btn {
+      background: transparent;
+      border: none;
+      color: #333;
+      cursor: pointer;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .note .close-btn:hover {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+  <!-- Menu de contexto que mostra cores; inicialmente oculto -->
+  <div id="colorMenu" style="
+    position: absolute;
+    display: none;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 9999;
+  ">
+    <div data-color="note-yellow"  style="width:20px; height:20px; background:#fffa75; border-radius:4px; cursor:pointer; margin:4px;"></div>
+    <div data-color="note-green"   style="width:20px; height:20px; background:#bfff80; border-radius:4px; cursor:pointer; margin:4px;"></div>
+    <div data-color="note-pink"    style="width:20px; height:20px; background:#ffc0cb; border-radius:4px; cursor:pointer; margin:4px;"></div>
+    <div data-color="note-blue"    style="width:20px; height:20px; background:#afefff; border-radius:4px; cursor:pointer; margin:4px;"></div>
+    <div data-color="note-purple"  style="width:20px; height:20px; background:#d4b3ff; border-radius:4px; cursor:pointer; margin:4px;"></div>
+  </div>
+
+  <header>
+    <h1>Notas Adesivas</h1>
+    <button id="btnNovaNota">Nova Nota</button>
+  </header>
+
+  <script>
+    // Carrega notas do localStorage
+    const savedNotes = JSON.parse(localStorage.getItem('stickyNotes') || '[]');
+
+    // Array de cores disponíveis
+    const NOTE_COLORS = [
+      'note-yellow',
+      'note-green',
+      'note-pink',
+      'note-blue'
+    ];
+
+    // Cria cada nota a partir do array salvo
+    savedNotes.forEach(createNote);
+
+    // Botão "Nova Nota"
+    document.getElementById('btnNovaNota').addEventListener('click', () => {
+      const noteData = {
+        text: '',
+        left: 50,
+        top: 50
+      };
+      // Escolhe cor aleatória
+      const randomColor = NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
+      noteData.colorClass = randomColor;
+      createNote(noteData);
+      saveAllNotes(); // Salvar imediatamente para registrar essa nova nota
+    });
+
+    // Cria uma nota e insere no DOM
+    function createNote(data) {
+      const noteDiv = document.createElement('div');
+      noteDiv.classList.add('note');
+      // Se existir 'colorClass' no objeto, adiciona a classe
+      if (data.colorClass) {
+        noteDiv.classList.add(data.colorClass);
+      } else {
+        // se não, usa cor amarela por padrão
+        noteDiv.classList.add('note-yellow');
+      }
+      noteDiv.style.left = data.left + 'px';
+      noteDiv.style.top = data.top + 'px';
+      // Se houver largura ou altura salvas, aplica
+      if (data.width) {
+        noteDiv.style.width = data.width + 'px';
+      }
+      if (data.height) {
+        noteDiv.style.height = data.height + 'px';
+      }
+
+      // Conteúdo interno
+      noteDiv.innerHTML = /* html */ `
+        <button class="close-btn">&times;</button>
+        <textarea>${data.text || ''}</textarea>
+      `;
+
+      // Adiciona eventos
+      const closeBtn = noteDiv.querySelector('.close-btn');
+      const textarea = noteDiv.querySelector('textarea');
+
+      // Exibir menu de cor quando clicar com botão direito
+      noteDiv.addEventListener('contextmenu', (evt) => {
+        evt.preventDefault(); // Bloqueia menu padrão do navegador
+        // Mostra nosso menu de cores na posição do mouse
+        const colorMenu = document.getElementById('colorMenu');
+        colorMenu.style.left = evt.pageX + 'px';
+        colorMenu.style.top = evt.pageY + 'px';
+        colorMenu.style.display = 'block';
+
+        // Armazena em uma variável global ou data-attribute qual nota estamos mudando
+        window.currentNoteToColor = noteDiv;
+      });
+
+      // Se o menu já estiver aberto e clicarmos em outro lugar, ocultar
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#colorMenu')) return; 
+        // Se clicou dentro do menu de cor, não fecha ainda
+        const colorMenu = document.getElementById('colorMenu');
+        colorMenu.style.display = 'none';
+      });
+
+      // Fechar nota
+      closeBtn.addEventListener('click', () => {
+        noteDiv.remove();
+        saveAllNotes();
+      });
+
+      // Atualiza texto ao digitar
+      textarea.addEventListener('input', () => {
+        saveAllNotes();
+      });
+
+      // Arrastar e soltar
+      let offsetX, offsetY;
+      let isDragging = false;
+
+      noteDiv.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.classList.contains('close-btn')) {
+          // Se clicou dentro do textarea ou no botão de fechar, não arrasta
+          return;
+        }
+        isDragging = true;
+        offsetX = e.offsetX;
+        offsetY = e.offsetY;
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        noteDiv.style.left = (e.pageX - offsetX) + 'px';
+        noteDiv.style.top = (e.pageY - offsetY) + 'px';
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          saveAllNotes();
+        }
+      });
+
+      document.body.appendChild(noteDiv);
+    }
+
+    // Salva todas as notas (posições e texto) no localStorage
+    function saveAllNotes() {
+      const notes = Array.from(document.querySelectorAll('.note')).map(note => {
+        const textarea = note.querySelector('textarea');
+        return {
+          text: textarea.value,
+          left: parseFloat(note.style.left),
+          top: parseFloat(note.style.top),
+          width: parseFloat(note.style.width) || 200,  // se não houver valor, use 200
+          height: parseFloat(note.style.height) || 100, // idem
+          colorClass: [...note.classList].find(cls => cls.startsWith('note-'))
+        };
+      });
+      localStorage.setItem('stickyNotes', JSON.stringify(notes));
+    }
+  </script>
+
+  </div> <!-- Fim .container -->
+
+  <script>
+    // Lidar com clique nas cores do menu de contexto
+    const colorMenu = document.getElementById('colorMenu');
+    colorMenu.addEventListener('click', (e) => {
+      // se clicou em um dos <div data-color="...">
+      if (!e.target.dataset.color) return;
+
+      const colorClass = e.target.dataset.color;
+      // Remove classes antigas e adiciona a nova
+      if (window.currentNoteToColor) {
+        const noteDiv = window.currentNoteToColor;
+        noteDiv.classList.forEach(cls => {
+          if (cls.startsWith('note-')) {
+            noteDiv.classList.remove(cls);
+          }
+        });
+        noteDiv.classList.add(colorClass);
+        // Salvar
+        saveAllNotes();
+      }
+
+      // Ocultar menu ao escolher
+      colorMenu.style.display = 'none';
+    });
+  
+    // Se clicar com o botão direito em qualquer outro lugar do documento 
+    // sem ser numa nota, também vamos esconder o menu.
+    document.addEventListener('contextmenu', (e) => {
+      const insideNote = e.target.closest('.note');
+      if (!insideNote) {
+        colorMenu.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html> 
