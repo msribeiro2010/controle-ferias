@@ -111,6 +111,15 @@ function carregarPlantoes() {
                 const dataB = new Date(b.data + 'T00:00:00');
                 return dataA - dataB;
             });
+
+            // Filtrar apenas plantões futuros
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0); // Resetar hora para comparar apenas a data
+
+            todosPlantoes = todosPlantoes.filter(plantao => {
+                const dataPlantao = new Date(plantao.data + 'T00:00:00');
+                return dataPlantao >= hoje;
+            });
             
             // Renderizar plantões
             todosPlantoes.forEach(plantao => {

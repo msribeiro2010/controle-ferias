@@ -17,6 +17,7 @@
       font-family: 'Poppins', sans-serif;
       user-select: none; /* Evita seleção involuntária durante drag */
       height: 100%;
+      overflow-x: hidden; /* Previne scroll horizontal */
     }
 
     /* Um container central para dar mais estrutura */
@@ -25,6 +26,7 @@
       margin: 0 auto;
       padding: 1rem;
       position: relative; /* para que as notas fiquem dentro do container */
+      min-height: calc(100vh - 60px); /* Altura total menos header */
     }
 
     header {
@@ -37,11 +39,13 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       position: sticky;
       top: 0;
+      z-index: 1000; /* Garante que o header fique sobre as notas */
+      height: 80px; /* Aumenta altura do header */
     }
 
     header h1 {
       margin: 0;
-      font-size: 1.4rem;
+      font-size: 2rem; /* Título maior */
       font-weight: 600;
     }
 
@@ -74,15 +78,16 @@
 
     .note {
       position: absolute;
-      width: 200px;
-      min-height: 100px;
+      width: 300px !important; /* Notas maiores */
+      min-height: 150px; /* Altura mínima maior */
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       border-radius: 8px;
       /* Permitir redimensionar a nota */
       resize: both;
       overflow: auto;
-      min-width: 150px;
-      padding: 0.5rem;
+      min-width: 300px;
+      max-width: 300px;
+      padding: 1rem; /* Padding maior */
       cursor: grab; /* Mostra uma mão aberta indicando que pode arrastar */
       transition: box-shadow 0.2s, transform 0.2s;
       box-sizing: border-box;
@@ -102,11 +107,11 @@
 
     .note textarea {
       width: 100%;
-      height: 80px;
+      height: 120px; /* Área de texto maior */
       border: none;
       background: transparent;
       resize: none;
-      font-size: 1rem;
+      font-size: 1.1rem; /* Texto maior */
       outline: none;
       font-family: inherit;
       cursor: text; /* dentro do textarea, cursor de edição */
@@ -184,22 +189,37 @@
 
     // Botão "Nova Nota"
     document.getElementById('btnNovaNota').addEventListener('click', () => {
+      // Calcula a posição da próxima nota
+      const existingNotes = document.querySelectorAll('.note');
+      const noteWidth = 320; // Largura da nota + margem
+      const noteHeight = 200; // Altura da nota + margem
+      const headerHeight = document.querySelector('header').offsetHeight + 20; // Altura do header + margem
+      const containerWidth = document.querySelector('.container').offsetWidth;
+      const maxNotesPerRow = Math.floor(containerWidth / noteWidth);
+
+      const currentNoteIndex = existingNotes.length;
+      const row = Math.floor(currentNoteIndex / maxNotesPerRow);
+      const col = currentNoteIndex % maxNotesPerRow;
+
       const noteData = {
-        text: '',
-        left: 50,
-        top: 50
+        left: col * noteWidth + 20, // 20px de margem inicial
+        top: headerHeight + (row * noteHeight),
+        text: ''
       };
       // Escolhe cor aleatória
       const randomColor = NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
       noteData.colorClass = randomColor;
       createNote(noteData);
-      saveAllNotes(); // Salvar imediatamente para registrar essa nova nota
+      saveAllNotes();
     });
 
     // Cria uma nota e insere no DOM
     function createNote(data) {
       const noteDiv = document.createElement('div');
       noteDiv.classList.add('note');
+      // Adiciona margem entre as notas
+      noteDiv.style.margin = '10px';
+      
       // Se existir 'colorClass' no objeto, adiciona a classe
       if (data.colorClass) {
         noteDiv.classList.add(data.colorClass);
@@ -207,8 +227,10 @@
         // se não, usa cor amarela por padrão
         noteDiv.classList.add('note-yellow');
       }
+      
       noteDiv.style.left = data.left + 'px';
       noteDiv.style.top = data.top + 'px';
+      
       // Se houver largura ou altura salvas, aplica
       if (data.width) {
         noteDiv.style.width = data.width + 'px';
@@ -304,6 +326,42 @@
       });
       localStorage.setItem('stickyNotes', JSON.stringify(notes));
     }
+
+    // Ao carregar a página, reorganiza as notas existentes
+    window.addEventListener('load', () => {
+      const notes = document.querySelectorAll('.note');
+      const noteWidth = 320;
+      const noteHeight = 200;
+      const headerHeight = document.querySelector('header').offsetHeight + 20;
+      const containerWidth = document.querySelector('.container').offsetWidth;
+      const maxNotesPerRow = Math.floor(containerWidth / noteWidth);
+
+      notes.forEach((note, index) => {
+        const row = Math.floor(index / maxNotesPerRow);
+        const col = index % maxNotesPerRow;
+        note.style.left = (col * noteWidth + 20) + 'px';
+        note.style.top = (headerHeight + (row * noteHeight)) + 'px';
+      });
+      saveAllNotes();
+    });
+
+    // Reorganiza as notas quando a janela é redimensionada
+    window.addEventListener('resize', () => {
+      const notes = document.querySelectorAll('.note');
+      const noteWidth = 320;
+      const noteHeight = 200;
+      const headerHeight = document.querySelector('header').offsetHeight + 20;
+      const containerWidth = document.querySelector('.container').offsetWidth;
+      const maxNotesPerRow = Math.floor(containerWidth / noteWidth);
+
+      notes.forEach((note, index) => {
+        const row = Math.floor(index / maxNotesPerRow);
+        const col = index % maxNotesPerRow;
+        note.style.left = (col * noteWidth + 20) + 'px';
+        note.style.top = (headerHeight + (row * noteHeight)) + 'px';
+      });
+      saveAllNotes();
+    });
   </script>
 
   </div> <!-- Fim .container -->
