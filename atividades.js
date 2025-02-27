@@ -35,80 +35,67 @@ async function carregarDados(user) {
     try {
         console.log('Iniciando carregamento de dados para usuário:', user.uid);
 
-        // Carregar saldo de férias
-        const feriasRef = ref(db, `ferias/${user.uid}/registros`);
-        const feriasSnapshot = await get(feriasRef);
-        console.log('Dados de férias:', feriasSnapshot.val());
+        // Atualizar saldo de férias
+        atualizarSaldoFerias();
 
-        // Calcular dias de férias
-        let diasUsados = 0;
-        let diasDisponiveis = 30; // Total padrão anual
-        
-        if (feriasSnapshot.exists()) {
-            const ferias = Object.values(feriasSnapshot.val())
-                .filter(f => f.status !== 'cancelada');
-            diasUsados = ferias.reduce((total, f) => total + parseInt(f.dias || 0), 0);
-            diasDisponiveis = 30 - diasUsados;
-        }
-
-        // Calcular dias para próximas férias
-        const hoje = new Date();
-        const ultimasFerias = feriasSnapshot.exists() ? 
-            Object.values(feriasSnapshot.val())
-                .filter(f => f.status !== 'cancelada')
-                .sort((a, b) => new Date(b.dataInicio) - new Date(a.dataInicio))[0] : null;
-
-        let diasParaProximas = 365;
-        if (ultimasFerias) {
-            const dataUltimasFerias = new Date(ultimasFerias.dataInicio);
-            const diffTime = Math.abs(hoje - dataUltimasFerias);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            diasParaProximas = Math.max(0, 365 - diffDays);
-        }
-
-        // Atualizar card de férias
-        const saldoFeriasElement = document.getElementById('saldoFerias');
-        if (saldoFeriasElement) {
-            saldoFeriasElement.innerHTML = `
-                ${diasDisponiveis} <small style="font-size: 0.5em; opacity: 0.7">
-                    (${diasUsados} usufruídos | ${diasParaProximas} dias para próximas)
-                </small>
-            `;
-        }
+        // Atualizar total de plantões e obter os dados calculados
+        const dadosPlantoes = await atualizarTotalPlantoes(user);
+        const plantoesRealizados = dadosPlantoes.plantoesRealizados;
+        const totalPlantoes = dadosPlantoes.totalPlantoes;
 
         // Carregar plantões
         const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
         const plantoesSnapshot = await get(plantoesRef);
         console.log('Dados de plantões:', plantoesSnapshot.val());
 
-        let totalPlantoes = 0;
-        let plantoesRealizados = 0;
-
         if (plantoesSnapshot.exists()) {
             const plantoes = Object.values(plantoesSnapshot.val());
-            totalPlantoes = plantoes.length;
-            plantoesRealizados = plantoes.filter(p => p.status === 'realizado').length;
 
             // Encontrar próximo plantão
             const proximoPlantao = plantoes
-                .filter(p => new Date(p.data.split('/').reverse().join('-')) >= hoje)
-                .sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')))[0];
+                .filter(p => {
+                    // Verificar se a data é válida e futura
+                    if (!p.data) {
+                        return false;
+                    }
+                    return isDataFutura(p.data);
+                })
+                .sort((a, b) => {
+                    try {
+                        const dataA = padronizarFormatoData(a.data);
+                        const dataB = padronizarFormatoData(b.data);
+                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
+                    } catch (error) {
+                        console.log('Erro ao ordenar datas:', a.data, b.data, error);
+                        return 0;
+                    }
+                })[0];
 
-            if (proximoPlantao) {
-                const [dia, mes, ano] = proximoPlantao.data.split('/');
-                const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-                
-                // Formatar dia e mês com dois dígitos
-                const diaFormatado = dia.padStart(2, '0');
-                const mesFormatado = mes.padStart(2, '0');
-                
-                const proximoPlantaoDayElement = document.getElementById('proximoPlantaoDay');
-                const proximoPlantaoMonthElement = document.getElementById('proximoPlantaoMonth');
-                const proximoPlantaoTimeElement = document.getElementById('proximoPlantaoTime');
-                
-                if (proximoPlantaoDayElement) proximoPlantaoDayElement.textContent = diaFormatado;
-                if (proximoPlantaoMonthElement) proximoPlantaoMonthElement.textContent = `${mesFormatado}/${ano}`;
-                if (proximoPlantaoTimeElement) proximoPlantaoTimeElement.textContent = `Horário: ${proximoPlantao.horario || '08:00'}`;
+            if (proximoPlantao && proximoPlantao.data) {
+                try {
+                    const dataParts = padronizarFormatoData(proximoPlantao.data).split('-');
+                    if (dataParts.length !== 3) {
+                        throw new Error('Formato de data inválido: ' + proximoPlantao.data);
+                    }
+                    
+                    const [ano, mes, dia] = dataParts;
+                    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+                    
+                    // Formatar dia e mês com dois dígitos
+                    const diaFormatado = dia ? dia.padStart(2, '0') : '01';
+                    const mesFormatado = mes ? mes.padStart(2, '0') : '01';
+                    const anoFormatado = ano || new Date().getFullYear().toString();
+                    
+                    const proximoPlantaoDayElement = document.getElementById('proximoPlantaoDay');
+                    const proximoPlantaoMonthElement = document.getElementById('proximoPlantaoMonth');
+                    const proximoPlantaoTimeElement = document.getElementById('proximoPlantaoTime');
+                    
+                    if (proximoPlantaoDayElement) proximoPlantaoDayElement.textContent = diaFormatado;
+                    if (proximoPlantaoMonthElement) proximoPlantaoMonthElement.textContent = `${mesFormatado}/${anoFormatado}`;
+                    if (proximoPlantaoTimeElement) proximoPlantaoTimeElement.textContent = `Horário: ${proximoPlantao.horario || '08:00'}`;
+                } catch (error) {
+                    console.log('Erro ao processar data do próximo plantão:', error);
+                }
             }
         }
 
@@ -120,6 +107,7 @@ async function carregarDados(user) {
                     (${totalPlantoes} total)
                 </small>
             `;
+            console.log(`Plantões realizados: ${plantoesRealizados}, Total de plantões: ${totalPlantoes}`);
         }
 
         // Calcular saldo de folgas
@@ -136,22 +124,47 @@ async function carregarDados(user) {
 
             // Encontrar próxima folga
             const proximaFolga = folgas
-                .filter(f => f.status !== 'cancelada' && new Date(f.data.split('/').reverse().join('-')) >= hoje)
-                .sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')))[0];
+                .filter(f => {
+                    // Verificar se a data é válida e futura
+                    if (!f.data || f.status === 'cancelada') {
+                        return false;
+                    }
+                    return isDataFutura(f.data);
+                })
+                .sort((a, b) => {
+                    try {
+                        const dataA = padronizarFormatoData(a.data);
+                        const dataB = padronizarFormatoData(b.data);
+                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
+                    } catch (error) {
+                        console.log('Erro ao ordenar datas de folgas:', a.data, b.data, error);
+                        return 0;
+                    }
+                })[0];
 
-            if (proximaFolga) {
-                const [dia, mes, ano] = proximaFolga.data.split('/');
-                const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-                
-                // Formatar dia e mês com dois dígitos
-                const diaFormatado = dia.padStart(2, '0');
-                const mesFormatado = mes.padStart(2, '0');
-                
-                const proximaFolgaDayElement = document.getElementById('proximaFolgaDay');
-                const proximaFolgaMonthElement = document.getElementById('proximaFolgaMonth');
-                
-                if (proximaFolgaDayElement) proximaFolgaDayElement.textContent = diaFormatado;
-                if (proximaFolgaMonthElement) proximaFolgaMonthElement.textContent = `${mesFormatado}/${ano}`;
+            if (proximaFolga && proximaFolga.data) {
+                try {
+                    const dataParts = padronizarFormatoData(proximaFolga.data).split('-');
+                    if (dataParts.length !== 3) {
+                        throw new Error('Formato de data inválido para folga: ' + proximaFolga.data);
+                    }
+                    
+                    const [ano, mes, dia] = dataParts;
+                    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+                    
+                    // Formatar dia e mês com dois dígitos
+                    const diaFormatado = dia ? dia.padStart(2, '0') : '01';
+                    const mesFormatado = mes ? mes.padStart(2, '0') : '01';
+                    const anoFormatado = ano || new Date().getFullYear().toString();
+                    
+                    const proximaFolgaDayElement = document.getElementById('proximaFolgaDay');
+                    const proximaFolgaMonthElement = document.getElementById('proximaFolgaMonth');
+                    
+                    if (proximaFolgaDayElement) proximaFolgaDayElement.textContent = diaFormatado;
+                    if (proximaFolgaMonthElement) proximaFolgaMonthElement.textContent = `${mesFormatado}/${anoFormatado}`;
+                } catch (error) {
+                    console.log('Erro ao processar data da próxima folga:', error);
+                }
             }
         }
 
@@ -171,24 +184,44 @@ async function carregarDados(user) {
 
         if (trabalhoSnapshot.exists()) {
             const registros = Object.values(trabalhoSnapshot.val())
-                .filter(t => t.tipo === 'presencial' && new Date(t.data.split('/').reverse().join('-')) >= hoje)
-                .sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')));
+                .filter(t => {
+                    // Verificar se a data é válida e futura
+                    if (!t.data || t.tipo !== 'presencial') {
+                        return false;
+                    }
+                    return isDataFutura(t.data);
+                })
+                .sort((a, b) => {
+                    try {
+                        const dataA = padronizarFormatoData(a.data);
+                        const dataB = padronizarFormatoData(b.data);
+                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
+                    } catch (error) {
+                        console.log('Erro ao ordenar datas de trabalho:', a.data, b.data, error);
+                        return 0;
+                    }
+                });
 
             if (registros.length > 0) {
                 const proximoRegistro = registros[0];
                 proximoPresencial = proximoRegistro.data;
                 
-                // Calcular descrição (Hoje, Amanhã, ou em X dias)
-                const dataPresencial = new Date(proximoRegistro.data.split('/').reverse().join('-'));
-                const diffTime = Math.abs(dataPresencial - hoje);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) {
-                    descricaoPresencial = 'Hoje';
-                } else if (diffDays === 1) {
-                    descricaoPresencial = 'Amanhã';
-                } else {
-                    descricaoPresencial = `Em ${diffDays} dias`;
+                try {
+                    // Calcular descrição (Hoje, Amanhã, ou em X dias)
+                    const dataPresencial = new Date(padronizarFormatoData(proximoRegistro.data) + 'T00:00:00');
+                    const diffTime = Math.abs(dataPresencial - new Date());
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 0) {
+                        descricaoPresencial = 'Hoje';
+                    } else if (diffDays === 1) {
+                        descricaoPresencial = 'Amanhã';
+                    } else {
+                        descricaoPresencial = `Em ${diffDays} dias`;
+                    }
+                } catch (error) {
+                    console.log('Erro ao calcular diferença de dias para trabalho presencial:', error);
+                    descricaoPresencial = 'Data desconhecida';
                 }
             }
         }
@@ -224,32 +257,273 @@ async function carregarDados(user) {
     }
 }
 
+// Função para atualizar o saldo de folgas
+function atualizarSaldoFolgasDisponivel(plantoesRealizados, folgasUsadas) {
+    const saldoFolgasElement = document.getElementById('saldoFolgas');
+    if (saldoFolgasElement) {
+        // Cada plantão gera uma folga
+        const folgasDisponiveis = plantoesRealizados - (folgasUsadas || 0);
+        
+        // Atualizar o elemento na interface
+        saldoFolgasElement.textContent = folgasDisponiveis;
+        
+        // Log para depuração
+        console.log(`Saldo de folgas: ${folgasDisponiveis} (Plantões realizados: ${plantoesRealizados}, Folgas usadas: ${folgasUsadas || 0})`);
+    }
+}
+
+// Função para atualizar o total de plantões realizados
+async function atualizarTotalPlantoes(user) {
+    const plantoesRef = ref(db, `plantoes/${user.uid}`);
+    const snapshot = await get(plantoesRef);
+    
+    let totalPlantoes = 0;
+    let plantoesRealizados = 0;
+    
+    if (snapshot.exists()) {
+        // Somar plantões normais
+        const plantoes = snapshot.val();
+        if (plantoes.registros) {
+            Object.values(plantoes.registros).forEach(plantao => {
+                if (plantao.status !== 'cancelado') {
+                    // Verificar se o plantão já foi realizado
+                    const dataPlantao = new Date(padronizarFormatoData(plantao.data) + 'T00:00:00');
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    
+                    // Considerar como realizado se:
+                    // 1. O status for explicitamente 'realizado' OU
+                    // 2. A data do plantão já passou (é anterior à data atual)
+                    if (plantao.status === 'realizado' || dataPlantao < hoje) {
+                        plantoesRealizados++;
+                    }
+                    
+                    totalPlantoes++;
+                }
+            });
+        }
+        
+        // Adicionar saldo anterior
+        if (plantoes.saldoAnterior) {
+            const saldoAnterior = parseInt(plantoes.saldoAnterior);
+            totalPlantoes += saldoAnterior;
+            plantoesRealizados += saldoAnterior; // Saldo anterior sempre conta como realizado
+        }
+    }
+    
+    // Atualizar o contador de plantões
+    const totalPlantoesElement = document.getElementById('totalPlantoes');
+    if (totalPlantoesElement) {
+        totalPlantoesElement.innerHTML = `
+            ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">
+                (${totalPlantoes} total)
+            </small>
+        `;
+        console.log(`Plantões realizados: ${plantoesRealizados}, Total de plantões: ${totalPlantoes}`);
+    }
+    
+    // Buscar folgas usadas e atualizar saldo de folgas
+    const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+    const folgasSnapshot = await get(folgasRef);
+    
+    let folgasUsadas = 0;
+    if (folgasSnapshot.exists()) {
+        // Contar folgas já utilizadas
+        Object.values(folgasSnapshot.val()).forEach(folga => {
+            if (folga.status !== 'cancelada') {
+                const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                
+                if (dataFolga < hoje) {
+                    folgasUsadas++;
+                }
+            }
+        });
+    }
+    
+    // Atualizar o saldo de folgas
+    atualizarSaldoFolgasDisponivel(plantoesRealizados, folgasUsadas);
+    
+    return { plantoesRealizados, totalPlantoes, folgasUsadas };
+}
+
 function iniciarListenersRealtime(user) {
+    console.log('Iniciando listeners em tempo real para usuário:', user.uid);
+    
+    // Listener para histórico de férias
+    const USUARIO_KEY = 'usuario_logado';
+    const historicoRef = ref(db, `users/${user.uid}/historicoFerias`);
+    onValue(historicoRef, (snapshot) => {
+        console.log('Atualização detectada no histórico de férias');
+        
+        // Atualizar dados no localStorage
+        const usuarioAtual = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
+        usuarioAtual.historicoFerias = snapshot.val() || [];
+        localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioAtual));
+        
+        // Atualizar interface
+        atualizarSaldoFerias();
+    });
+    
+    // Listener para plantões
+    const plantoesRef = ref(db, `plantoes/${user.uid}`);
+    onValue(plantoesRef, (snapshot) => {
+        console.log('Atualização detectada nos plantões');
+        
+        // Atualizar interface
+        atualizarTotalPlantoes(user);
+    });
+    
+    // Debounce para evitar múltiplas chamadas à carregarDados
+    let debounceTimer;
+    const debounceCarregarDados = (user) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            carregarDados(user);
+        }, 300); // Aguarda 300ms antes de executar
+    };
+
     // Listener para férias
     const feriasRef = ref(db, `ferias/${user.uid}/registros`);
     onValue(feriasRef, (snapshot) => {
         console.log('Atualização em tempo real - férias:', snapshot.val());
-        carregarDados(user);
+        debounceCarregarDados(user);
     });
 
     // Listener para plantões
-    const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
-    onValue(plantoesRef, (snapshot) => {
+    const plantoesRef2 = ref(db, `plantoes/${user.uid}/registros`);
+    onValue(plantoesRef2, (snapshot) => {
         console.log('Atualização em tempo real - plantões:', snapshot.val());
-        carregarDados(user);
+        debounceCarregarDados(user);
     });
 
     // Listener para folgas
     const folgasRef = ref(db, `folgas/${user.uid}/registros`);
     onValue(folgasRef, (snapshot) => {
-        console.log('Atualização em tempo real - folgas:', snapshot.val());
-        carregarDados(user);
+        console.log('Atualização detectada nas folgas');
+        
+        // Atualizar interface
+        atualizarTotalPlantoes(user);
     });
 
     // Listener para trabalho
     const trabalhoRef = ref(db, `trabalho/${user.uid}/registros`);
     onValue(trabalhoRef, (snapshot) => {
         console.log('Atualização em tempo real - trabalho:', snapshot.val());
-        carregarDados(user);
+        debounceCarregarDados(user);
     });
+}
+
+// Função para padronizar o formato de data
+function padronizarFormatoData(dataString) {
+    if (!dataString) return null;
+    
+    try {
+        // Verificar se a data já está no formato YYYY-MM-DD
+        if (dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return dataString; // Já está no formato esperado
+        }
+        
+        // Verificar se a data está no formato DD/MM/YYYY
+        if (dataString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+            // Converter de DD/MM/YYYY para YYYY-MM-DD
+            return dataString.split('/').reverse().join('-');
+        }
+        
+        console.log('Formato de data não reconhecido:', dataString);
+        return null;
+    } catch (error) {
+        console.log('Erro ao padronizar formato de data:', error);
+        return null;
+    }
+}
+
+// Função para verificar se uma data é válida e futura
+function isDataFutura(dataString) {
+    if (!dataString) return false;
+    
+    try {
+        const dataPadronizada = padronizarFormatoData(dataString);
+        if (!dataPadronizada) return false;
+        
+        const data = new Date(dataPadronizada + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        return data >= hoje;
+    } catch (error) {
+        console.log('Erro ao verificar data futura:', error);
+        return false;
+    }
+}
+
+// Função para verificar se uma data é válida e passada
+function isDataPassada(dataString) {
+    if (!dataString) return false;
+    
+    try {
+        const dataPadronizada = padronizarFormatoData(dataString);
+        if (!dataPadronizada) return false;
+        
+        const data = new Date(dataPadronizada + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        return data < hoje;
+    } catch (error) {
+        console.log('Erro ao verificar data passada:', error);
+        return false;
+    }
+}
+
+// Função para atualizar o saldo de férias
+function atualizarSaldoFerias() {
+    const USUARIO_KEY = 'usuario_logado';
+    const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
+    
+    let diasUsufruidos = 0;
+    const totalFerias = 30; // Todos funcionários começam com 30 dias
+    const hoje = new Date();
+    
+    if (usuarioLogado.historicoFerias) {
+        usuarioLogado.historicoFerias.forEach(periodo => {
+            const dataFim = new Date(padronizarFormatoData(periodo.dataFim) + 'T00:00:00');
+            if (dataFim < hoje) {
+                diasUsufruidos += parseInt(periodo.diasFerias);
+            }
+        });
+    }
+    
+    const saldoFerias = totalFerias - diasUsufruidos;
+    
+    // Determinar classe CSS baseada no saldo
+    let saldoClass = '';
+    let saldoMensagem = '';
+    
+    if (saldoFerias <= 0) {
+        saldoClass = 'saldo-esgotado';
+        saldoMensagem = '<span class="saldo-alerta">Saldo esgotado!</span>';
+    } else if (saldoFerias <= 5) {
+        saldoClass = 'saldo-baixo';
+        saldoMensagem = '<span class="saldo-alerta">Saldo baixo!</span>';
+    }
+    
+    // Atualizar card de férias
+    const saldoFeriasElement = document.getElementById('saldoFerias');
+    if (saldoFeriasElement) {
+        saldoFeriasElement.innerHTML = `
+            ${saldoFerias} <small style="font-size: 0.5em; opacity: 0.7">
+                (${diasUsufruidos} usufruídos | ${totalFerias} total)
+            </small>
+            ${saldoMensagem}
+        `;
+        
+        // Adicionar classe para estilo
+        if (saldoClass) {
+            saldoFeriasElement.classList.add(saldoClass);
+        } else {
+            saldoFeriasElement.classList.remove('saldo-baixo', 'saldo-esgotado');
+        }
+    }
 }

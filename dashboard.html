@@ -626,16 +626,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        .ferias-restantes::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2ecc71, #27ae60);
-        }
-
         .ferias-info {
             position: relative;
             padding: 10px 0;
@@ -721,14 +711,10 @@
         }
 
         .ferias-restantes h2 {
-            color: #3498db;
             font-size: 0.95em;
+            margin-bottom: 8px;
+            color: #2c3e50;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin: 0 0 20px 0;
-            font-style: italic;
-            text-shadow: none;
         }
 
         .feriados-mes h2 {
@@ -931,8 +917,24 @@
             color: #27ae60;
         }
 
-        .saldo-baixo .ferias-valor {
-            color: #e74c3c;
+        .saldo-baixo .ferias-valor,
+        .saldo-baixo p {
+            color: #f39c12 !important;
+        }
+        
+        .saldo-baixo .saldo-alerta {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .saldo-esgotado .ferias-valor,
+        .saldo-esgotado p {
+            color: #e74c3c !important;
+        }
+        
+        .saldo-esgotado .saldo-alerta {
+            background-color: #e74c3c;
+            color: white;
         }
 
         .ferias-restantes h2 {
@@ -1160,6 +1162,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
             padding: 1rem;
+            border-top: 4px solid #3498db;
         }
         .placar-card h3 {
             margin: 0 0 0.5rem 0;
@@ -1172,12 +1175,64 @@
             font-weight: 600;
             color: #3498db;
         }
-
+        
+        /* Cores específicas para cada placar */
+        .placar-card.saldo {
+            border-color: #3498db; /* Azul */
+        }
+        .placar-card.saldo p {
+            color: #3498db;
+        }
+        
+        .placar-card.usufruidas {
+            border-color: #e74c3c; /* Vermelho */
+        }
+        .placar-card.usufruidas p {
+            color: #e74c3c;
+        }
+        
+        .placar-card.restantes {
+            border-color: #2ecc71; /* Verde */
+        }
+        .placar-card.restantes p {
+            color: #2ecc71;
+        }
+        
         .dashboard-top {
             display: flex;
             align-items: center;
             gap: 1rem;
             margin-bottom: 1rem;
+        }
+
+        /* Estilos para alertas de saldo */
+        .saldo-alerta {
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .saldo-baixo .ferias-valor,
+        .saldo-baixo p {
+            color: #f39c12 !important;
+        }
+        
+        .saldo-baixo .saldo-alerta {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .saldo-esgotado .ferias-valor,
+        .saldo-esgotado p {
+            color: #e74c3c !important;
+        }
+        
+        .saldo-esgotado .saldo-alerta {
+            background-color: #e74c3c;
+            color: white;
         }
     </style>
 </body>

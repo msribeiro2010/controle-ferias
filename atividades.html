@@ -49,6 +49,34 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
+        
+        /* Estilos para alertas de saldo */
+        .saldo-alerta {
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .saldo-baixo .saldo-alerta {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .saldo-esgotado .saldo-alerta {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .saldo-baixo.stat-value {
+            color: #f39c12 !important;
+        }
+        
+        .saldo-esgotado.stat-value {
+            color: #e74c3c !important;
+        }
 
         .stat-header {
             display: flex;

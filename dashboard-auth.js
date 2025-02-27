@@ -34,9 +34,9 @@ let reconnectAttempts = 0;
 const handleConnectionError = (error) => {
     console.error(' Erro de conexão com o Firebase:', error);
     
-    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    if (reconnectAttempts < 5) {
         reconnectAttempts++;
-        console.log(`Tentativa de reconexão ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
+        console.log(`Tentativa de reconexão ${reconnectAttempts}/5`);
         
         setTimeout(() => {
             console.log('Tentando reconectar...');
@@ -256,7 +256,13 @@ const salvarPeriodoFerias = async (event) => {
 
 const atualizarSaldoFerias = () => {
     const saldoFeriasElement = document.getElementById('saldoFerias');
-    if (saldoFeriasElement) {
+    
+    // Elementos dos placares no dashboard
+    const saldoFeriasValorElement = document.getElementById('saldoFeriasValor');
+    const feriasUsufruidasValorElement = document.getElementById('feriasUsufruidasValor');
+    const feriasRestantesValorElement = document.getElementById('feriasRestantesValor');
+    
+    if (saldoFeriasElement || saldoFeriasValorElement || feriasUsufruidasValorElement || feriasRestantesValorElement) {
         const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
         const hoje = new Date();
         let diasUsufruidos = 0;
@@ -270,42 +276,64 @@ const atualizarSaldoFerias = () => {
             });
         }
 
-        const totalFerias = 30;
+        const totalFerias = 30; // Todos funcionários começam com 30 dias
         const saldoFerias = totalFerias - diasUsufruidos;
         
-        saldoFeriasElement.innerHTML = `
-            <div class="ferias-info">
-                <div class="ferias-item">
-                    <span class="ferias-label">Total:</span>
-                    <span class="ferias-valor">${totalFerias} dias</span>
+        // Determinar classe CSS baseada no saldo
+        let saldoClass = '';
+        let saldoMensagem = '';
+        
+        if (saldoFerias <= 0) {
+            saldoClass = 'saldo-esgotado';
+            saldoMensagem = '<div class="saldo-alerta">Saldo esgotado!</div>';
+        } else if (saldoFerias <= 5) {
+            saldoClass = 'saldo-baixo';
+            saldoMensagem = '<div class="saldo-alerta">Saldo baixo!</div>';
+        }
+        
+        // Atualizar o elemento de saldo detalhado (se existir)
+        if (saldoFeriasElement) {
+            saldoFeriasElement.innerHTML = `
+                <div class="ferias-info">
+                    <div class="ferias-item">
+                        <span class="ferias-label">Total:</span>
+                        <span class="ferias-valor">${totalFerias} dias</span>
+                    </div>
+                    <div class="ferias-item">
+                        <span class="ferias-label">Usufruído:</span>
+                        <span class="ferias-valor">${diasUsufruidos} dias</span>
+                    </div>
+                    <div class="ferias-item saldo-atual ${saldoClass}">
+                        <span class="ferias-label">Saldo:</span>
+                        <span class="ferias-valor">${saldoFerias} dias</span>
+                    </div>
                 </div>
-                <div class="ferias-item">
-                    <span class="ferias-label">Usufruído:</span>
-                    <span class="ferias-valor">${diasUsufruidos} dias</span>
-                </div>
-                <div class="ferias-item saldo-atual">
-                    <span class="ferias-label">Saldo:</span>
-                    <span class="ferias-valor">${saldoFerias} dias</span>
-                </div>
-            </div>
-        `;
+            `;
+        }
+        
+        // Atualizar os placares no dashboard (se existirem)
+        if (saldoFeriasValorElement) {
+            saldoFeriasValorElement.textContent = `${totalFerias} dias`;
+        }
+        
+        if (feriasUsufruidasValorElement) {
+            feriasUsufruidasValorElement.textContent = `${diasUsufruidos} dias`;
+        }
+        
+        if (feriasRestantesValorElement) {
+            feriasRestantesValorElement.innerHTML = `${saldoFerias} dias ${saldoMensagem}`;
+            
+            // Adicionar classe para estilo
+            if (saldoClass) {
+                feriasRestantesValorElement.classList.add(saldoClass);
+            } else {
+                feriasRestantesValorElement.classList.remove('saldo-baixo', 'saldo-esgotado');
+            }
+        }
     }
 };
 
-// Atualizar os event listeners dos campos de data
-document.getElementById('dataInicio').addEventListener('change', atualizarDiasFerias);
-document.getElementById('dataFim').addEventListener('change', atualizarDiasFerias);
-
-function atualizarDiasFerias() {
-    const dataInicio = document.getElementById('dataInicio').value;
-    const dataFim = document.getElementById('dataFim').value;
-    const diasFerias = calcularDiasFerias(dataInicio, dataFim);
-    
-    document.getElementById('diasFerias').value = diasFerias || '';
-}
-
-// Atualizar a função que renderiza o histórico
-function renderizarHistoricoFerias(historico) {
+const renderizarHistoricoFerias = (historico) => {
     const tbody = document.getElementById('historicoCorpo');
     tbody.innerHTML = '';
     
@@ -390,39 +418,37 @@ window.excluirPeriodoFerias = async (index) => {
         const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY));
         
         if (!usuarioLogado.historicoFerias || !usuarioLogado.historicoFerias[index]) {
-            throw new Error('Período não encontrado');
+            throw new Error('Período de férias não encontrado.');
         }
 
-        // Pegar o período que será removido para atualizar o saldo
-        const periodoRemovido = usuarioLogado.historicoFerias[index];
-        
-        // Atualizar saldo de férias
-        usuarioLogado.feriasUtilizadas = (usuarioLogado.feriasUtilizadas || 0) - periodoRemovido.diasFerias;
-        
-        // Remover período do histórico
+        // Remover o período
         usuarioLogado.historicoFerias.splice(index, 1);
 
-        // Atualizar no Firebase
+        // Salvar no Firebase
         const userId = auth.currentUser.uid;
         const userRef = ref(database, 'users/' + userId);
         
-        await update(userRef, {
-            historicoFerias: usuarioLogado.historicoFerias,
-            feriasUtilizadas: usuarioLogado.feriasUtilizadas
-        });
-
-        // Atualizar localStorage
-        localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioLogado));
-
-        // Atualizar interface
-        atualizarSaldoFerias();
-        renderizarHistoricoFerias(usuarioLogado.historicoFerias);
-
-        alert('Período de férias excluído com sucesso!');
-
+        try {
+            await update(userRef, {
+                historicoFerias: usuarioLogado.historicoFerias
+            });
+            
+            // Atualizar localStorage
+            localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioLogado));
+            
+            // Atualizar interface
+            atualizarSaldoFerias();
+            renderizarHistoricoFerias(usuarioLogado.historicoFerias);
+            
+            // Mostrar mensagem de sucesso
+            alert('Período de férias excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir período de férias:', error);
+            alert('Erro ao excluir período de férias: ' + error.message);
+        }
     } catch (error) {
-        console.error('Erro ao excluir período:', error);
-        alert('Erro ao excluir período de férias');
+        console.error('Erro ao excluir período de férias:', error);
+        alert(error.message);
     }
 };
 
@@ -453,17 +479,31 @@ const adicionarPeriodoFerias = async (event) => {
         }
 
         const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY));
-        const totalFerias = 30; // Fixado em 30 dias
-        let feriasUtilizadas = usuarioLogado.feriasUtilizadas || 0;
-
-        if (isEditing && usuarioLogado.historicoFerias[editIndex]) {
-            const periodoAntigo = usuarioLogado.historicoFerias[editIndex];
-            feriasUtilizadas -= periodoAntigo.diasFerias;
+        
+        // Todos funcionários começam com 30 dias de férias
+        const totalFerias = 30;
+        
+        // Calcular dias já usufruídos
+        let diasUsufruidos = 0;
+        const hoje = new Date();
+        
+        if (usuarioLogado.historicoFerias) {
+            usuarioLogado.historicoFerias.forEach((periodo, index) => {
+                // Se estamos editando, não considerar o período atual
+                if (isEditing && index === editIndex) {
+                    return;
+                }
+                
+                const dataFimPeriodo = new Date(periodo.dataFim + 'T00:00:00');
+                if (dataFimPeriodo < hoje) {
+                    diasUsufruidos += parseInt(periodo.diasFerias);
+                }
+            });
         }
-
+        
         // Verificar se o novo período ultrapassa o limite de 30 dias
-        if (feriasUtilizadas + diasFerias > totalFerias) {
-            throw new Error(`Não é possível adicionar este período. Limite máximo é de ${totalFerias} dias. Saldo atual: ${totalFerias - feriasUtilizadas} dias`);
+        if (diasUsufruidos + diasFerias > totalFerias) {
+            throw new Error(`Não é possível adicionar este período. Você já usufruiu ${diasUsufruidos} dias de férias. Saldo disponível: ${totalFerias - diasUsufruidos} dias.`);
         }
 
         // Atualizar ou adicionar o período
@@ -484,39 +524,45 @@ const adicionarPeriodoFerias = async (event) => {
             usuarioLogado.historicoFerias.push(novoPeriodo);
         }
 
-        // Atualizar total de férias utilizadas
-        usuarioLogado.feriasUtilizadas = feriasUtilizadas + diasFerias;
-        usuarioLogado.totalFerias = totalFerias; // Garantir que totalFerias seja sempre 30
-
         // Salvar no Firebase
         const userId = auth.currentUser.uid;
         const userRef = ref(database, 'users/' + userId);
         
-        await update(userRef, {
-            historicoFerias: usuarioLogado.historicoFerias,
-            feriasUtilizadas: usuarioLogado.feriasUtilizadas,
-            totalFerias: usuarioLogado.totalFerias
-        });
-
-        // Atualizar localStorage
-        localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioLogado));
-
-        // Atualizar interface
-        atualizarSaldoFerias();
-        renderizarHistoricoFerias(usuarioLogado.historicoFerias);
-
-        // Limpar formulário e resetar estado
-        form.reset();
-        delete form.dataset.editIndex;
-        form.querySelector('button[type="submit"]').textContent = 'Adicionar Período de Férias';
-
-        alert(isEditing ? 'Período de férias atualizado com sucesso!' : 'Período de férias adicionado com sucesso!');
-
+        try {
+            await update(userRef, {
+                historicoFerias: usuarioLogado.historicoFerias
+            });
+            
+            // Atualizar localStorage
+            localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioLogado));
+            
+            // Atualizar interface
+            atualizarSaldoFerias();
+            renderizarHistoricoFerias(usuarioLogado.historicoFerias);
+            
+            // Limpar formulário e sair do modo de edição
+            limparFormularioFerias();
+            isEditing = false;
+            editIndex = -1;
+            
+            // Mostrar mensagem de sucesso
+            alert(isEditing ? 'Período de férias atualizado com sucesso!' : 'Período de férias adicionado com sucesso!');
+            
+            // Fechar modal
+            const modal = document.getElementById('modalFerias');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Erro ao salvar período de férias:', error);
+            alert('Erro ao salvar período de férias: ' + error.message);
+        }
+        
     } catch (error) {
         console.error('Erro ao adicionar/editar período de férias:', error);
         alert(error.message);
     }
-
+    
     console.groupEnd();
 };
 
@@ -675,8 +721,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Event listeners para cálculo de dias
         if (dataInicioInput && dataFimInput && diasFeriasInput) {
-            dataInicioInput.addEventListener('change', calcularDiasFerias);
-            dataFimInput.addEventListener('change', calcularDiasFerias);
+            dataInicioInput.addEventListener('change', atualizarDiasFerias);
+            dataFimInput.addEventListener('change', atualizarDiasFerias);
             diasFeriasInput.className = 'no-spinners';
             diasFeriasInput.setAttribute('readonly', 'true'); // Tornar o campo somente leitura
         }
@@ -765,19 +811,28 @@ onAuthStateChanged(auth, async (user) => {
         const usernameElement = document.getElementById('employee-username');
         const emailElement = document.getElementById('employee-email');
 
-        if (nomeUsuarioElement) {
-            nomeUsuarioElement.textContent = usuarioLogado.nome;
-        }
-        if (usernameElement) {
-            usernameElement.textContent = usuarioLogado.username;
-        }
-        if (emailElement) {
-            emailElement.textContent = usuarioLogado.email;
-        }
+        if (nomeUsuarioElement) nomeUsuarioElement.textContent = usuarioLogado.nome;
+        if (usernameElement) usernameElement.textContent = usuarioLogado.username;
+        if (emailElement) emailElement.textContent = usuarioLogado.email;
 
-        // Atualizar interface
+        // Atualizar saldo de férias e histórico
         atualizarSaldoFerias();
-        renderizarHistoricoFerias(usuarioLogado.historicoFerias || {});
+        renderizarHistoricoFerias(usuarioLogado.historicoFerias || []);
+        
+        // Configurar listener para atualizações no histórico de férias
+        const historicoRef = ref(database, `users/${user.uid}/historicoFerias`);
+        onValue(historicoRef, (snapshot) => {
+            console.log('Atualização detectada no histórico de férias');
+            
+            // Atualizar dados no localStorage
+            const usuarioAtual = JSON.parse(localStorage.getItem(USUARIO_KEY)) || {};
+            usuarioAtual.historicoFerias = snapshot.val() || [];
+            localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioAtual));
+            
+            // Atualizar interface
+            atualizarSaldoFerias();
+            renderizarHistoricoFerias(usuarioAtual.historicoFerias);
+        });
 
     } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
@@ -890,3 +945,24 @@ const form = `
         </form>
     </div>
 `;
+
+// Atualizar os event listeners dos campos de data
+document.getElementById('dataInicio')?.addEventListener('change', atualizarDiasFerias);
+document.getElementById('dataFim')?.addEventListener('change', atualizarDiasFerias);
+
+function atualizarDiasFerias() {
+    const dataInicio = document.getElementById('dataInicio').value;
+    const dataFim = document.getElementById('dataFim').value;
+    const diasFerias = calcularDiasFerias(dataInicio, dataFim);
+    
+    document.getElementById('diasFerias').value = diasFerias || '';
+}
+
+function limparFormularioFerias() {
+    const form = document.getElementById('adicionarFeriasForm');
+    if (form) {
+        form.reset();
+        delete form.dataset.editIndex;
+        form.querySelector('button[type="submit"]').textContent = 'Adicionar Período de Férias';
+    }
+}
