@@ -1018,20 +1018,26 @@
                     
                     if (diffDays > 0) {
                         alertaPlantao.innerHTML = `
-                            <div style="font-weight: bold; margin-bottom: 5px;">Próximo Plantão</div>
-                            <i class="fas fa-clock"></i>
-                            ${dataFormatada}<br>
-                            <small>PLANTÃO • Agendado</small>
+                            <div class="alerta-titulo">
+                                <i class="fas fa-clock alerta-icone"></i>
+                                Próximo Plantão
+                            </div>
+                            <div class="alerta-conteudo">
+                                ${dataFormatada}
+                            </div>
                         `;
                         alertaPlantao.style.backgroundColor = '#fff3cd';
                         alertaPlantao.style.color = '#856404';
                         alertaPlantao.style.borderLeftColor = '#ffc107';
                     } else if (diffDays === 0) {
                         alertaPlantao.innerHTML = `
-                            <div style="font-weight: bold; margin-bottom: 5px;">Próximo Plantão</div>
-                            <i class="fas fa-exclamation-circle"></i>
-                            ${dataFormatada}<br>
-                            <small>PLANTÃO • Agendado</small>
+                            <div class="alerta-titulo">
+                                <i class="fas fa-exclamation-circle alerta-icone"></i>
+                                Próximo Plantão
+                            </div>
+                            <div class="alerta-conteudo">
+                                ${dataFormatada}
+                            </div>
                         `;
                         alertaPlantao.style.backgroundColor = '#d4edda';
                         alertaPlantao.style.color = '#155724';
@@ -1217,16 +1223,26 @@
                             
                             if (diasFaltando > 0) {
                                 alertaFerias.innerHTML = `
-                                    <i class="fas fa-umbrella-beach"></i>
-                                    Suas próximas férias começam em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataInicioBR})
+                                    <div class="alerta-titulo">
+                                        <i class="fas fa-umbrella-beach alerta-icone"></i>
+                                        Próximas Férias
+                                    </div>
+                                    <div class="alerta-conteudo">
+                                        Em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataInicioBR})
+                                    </div>
                                 `;
-                                alertaFerias.style.backgroundColor = '#fff3cd';
-                                alertaFerias.style.color = '#856404';
-                                alertaFerias.style.borderLeftColor = '#ffc107';
+                                alertaFerias.style.backgroundColor = '#d4edda';
+                                alertaFerias.style.color = '#155724';
+                                alertaFerias.style.borderLeftColor = '#28a745';
                             } else if (diasFaltando === 0) {
                                 alertaFerias.innerHTML = `
-                                    <i class="fas fa-umbrella-beach"></i>
-                                    Suas férias começam hoje! (${dataInicioBR})
+                                    <div class="alerta-titulo">
+                                        <i class="fas fa-umbrella-beach alerta-icone"></i>
+                                        Próximas Férias
+                                    </div>
+                                    <div class="alerta-conteudo">
+                                        Começam hoje! (${dataInicioBR})
+                                    </div>
                                 `;
                                 alertaFerias.style.backgroundColor = '#d4edda';
                                 alertaFerias.style.color = '#155724';
