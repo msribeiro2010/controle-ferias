@@ -44,7 +44,7 @@ async function carregarDados(user) {
         const totalPlantoes = dadosPlantoes.totalPlantoes;
 
         // Carregar plantões
-        const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
+        const plantoesRef = ref(db, `plantoes/${user.uid}`);
         const plantoesSnapshot = await get(plantoesRef);
         console.log('Dados de plantões:', plantoesSnapshot.val());
 
@@ -114,7 +114,7 @@ async function carregarDados(user) {
         let saldoFolgas = plantoesRealizados; // Cada plantão realizado gera uma folga
 
         // Subtrair folgas já utilizadas
-        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasRef = ref(db, `folgas/${user.uid}`);
         const folgasSnapshot = await get(folgasRef);
         
         if (folgasSnapshot.exists()) {
@@ -175,7 +175,7 @@ async function carregarDados(user) {
         }
 
         // Carregar próximo dia presencial
-        const trabalhoRef = ref(db, `trabalho/${user.uid}/registros`);
+        const trabalhoRef = ref(db, `trabalho/${user.uid}`);
         const trabalhoSnapshot = await get(trabalhoRef);
         console.log('Dados de trabalho:', trabalhoSnapshot.val());
 
@@ -183,55 +183,100 @@ async function carregarDados(user) {
         let descricaoPresencial = '';
 
         if (trabalhoSnapshot.exists()) {
-            const registros = Object.values(trabalhoSnapshot.val())
-                .filter(t => {
-                    // Verificar se a data é válida e futura
-                    if (!t.data || t.tipo !== 'presencial') {
-                        return false;
-                    }
-                    return isDataFutura(t.data);
-                })
-                .sort((a, b) => {
-                    try {
-                        const dataA = padronizarFormatoData(a.data);
-                        const dataB = padronizarFormatoData(b.data);
-                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
-                    } catch (error) {
-                        console.log('Erro ao ordenar datas de trabalho:', a.data, b.data, error);
-                        return 0;
-                    }
-                });
-
-            if (registros.length > 0) {
-                const proximoRegistro = registros[0];
-                proximoPresencial = proximoRegistro.data;
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            console.log('Data de hoje para comparação:', hoje.toISOString());
+            
+            let registrosPresenciais = [];
+            const registrosData = trabalhoSnapshot.val();
+            console.log('Total de registros de trabalho:', Object.keys(registrosData).length);
+            
+            // Processar todos os registros de trabalho
+            Object.entries(registrosData).forEach(([key, registro]) => {
+                console.log(`Analisando registro ${key}:`, registro);
+                console.log('Modalidade do registro:', registro.modalidade);
                 
-                try {
-                    // Calcular descrição (Hoje, Amanhã, ou em X dias)
-                    const dataPresencial = new Date(padronizarFormatoData(proximoRegistro.data) + 'T00:00:00');
-                    const diffTime = Math.abs(dataPresencial - new Date());
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    if (diffDays === 0) {
-                        descricaoPresencial = 'Hoje';
-                    } else if (diffDays === 1) {
-                        descricaoPresencial = 'Amanhã';
-                    } else {
-                        descricaoPresencial = `Em ${diffDays} dias`;
+                // Verificar se é um registro de trabalho presencial
+                if (registro.modalidade === 'presencial') {
+                    console.log('Encontrado registro presencial:', registro);
+                    try {
+                        // Converter a data para um objeto Date
+                        const dataString = registro.dataTrabalho || registro.data;
+                        console.log('Data original do registro:', dataString);
+                        
+                        // Verificar formato da data e converter para padrão
+                        let dataFormatada;
+                        if (dataString.includes('-')) {
+                            // Formato ISO (YYYY-MM-DD)
+                            dataFormatada = dataString;
+                        } else if (dataString.includes('/')) {
+                            // Formato BR (DD/MM/YYYY)
+                            const [dia, mes, ano] = dataString.split('/');
+                            dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                        } else {
+                            throw new Error(`Formato de data desconhecido: ${dataString}`);
+                        }
+                        
+                        console.log('Data formatada para ISO:', dataFormatada);
+                        const dataObj = new Date(dataFormatada);
+                        console.log('Objeto Date criado:', dataObj.toISOString());
+                        
+                        // Verificar se a data é futura
+                        if (dataObj >= hoje) {
+                            console.log('Data é futura, adicionando aos registros presenciais');
+                            registrosPresenciais.push({
+                                ...registro,
+                                dataObj: dataObj,
+                                id: key
+                            });
+                        } else {
+                            console.log('Data não é futura, ignorando');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao processar data do registro:', error);
                     }
-                } catch (error) {
-                    console.log('Erro ao calcular diferença de dias para trabalho presencial:', error);
-                    descricaoPresencial = 'Data desconhecida';
+                } else {
+                    console.log('Registro não é presencial, ignorando');
                 }
+            });
+            
+            console.log('Registros presenciais futuros encontrados:', registrosPresenciais.length);
+            
+            // Ordenar registros pela data (mais próxima primeiro)
+            registrosPresenciais.sort((a, b) => a.dataObj - b.dataObj);
+            
+            // Se encontramos registros presenciais futuros
+            if (registrosPresenciais.length > 0) {
+                const proximoRegistro = registrosPresenciais[0];
+                console.log('Próximo registro presencial:', proximoRegistro);
+                
+                // Formatar a data para exibição
+                const dataFormatada = proximoRegistro.dataObj.toLocaleDateString('pt-BR');
+                proximoPresencial = dataFormatada;
+                
+                // Calcular descrição (Hoje, Amanhã, ou em X dias)
+                const diffTime = proximoRegistro.dataObj - hoje;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) {
+                    descricaoPresencial = 'Hoje';
+                } else if (diffDays === 1) {
+                    descricaoPresencial = 'Amanhã';
+                } else {
+                    descricaoPresencial = `Em ${diffDays} dias`;
+                }
+                
+                console.log(`Próximo dia presencial: ${dataFormatada} (${descricaoPresencial})`);
+            } else {
+                console.log('Nenhum dia presencial futuro encontrado');
             }
+        } else {
+            console.log('Nenhum registro de trabalho encontrado');
         }
 
         const proximoPresencialElement = document.getElementById('proximoPresencial');
         if (proximoPresencialElement) {
-            proximoPresencialElement.innerHTML = `
-                ${proximoPresencial} 
-                <small style="font-size: 0.5em; opacity: 0.7">(${descricaoPresencial})</small>
-            `;
+            proximoPresencialElement.innerHTML = `${proximoPresencial} <small style="font-size: 0.5em; opacity: 0.7">(${descricaoPresencial})</small>`;
         }
 
     } catch (error) {
@@ -283,25 +328,23 @@ async function atualizarTotalPlantoes(user) {
     if (snapshot.exists()) {
         // Somar plantões normais
         const plantoes = snapshot.val();
-        if (plantoes.registros) {
-            Object.values(plantoes.registros).forEach(plantao => {
-                if (plantao.status !== 'cancelado') {
-                    // Verificar se o plantão já foi realizado
-                    const dataPlantao = new Date(padronizarFormatoData(plantao.data) + 'T00:00:00');
-                    const hoje = new Date();
-                    hoje.setHours(0, 0, 0, 0);
-                    
-                    // Considerar como realizado se:
-                    // 1. O status for explicitamente 'realizado' OU
-                    // 2. A data do plantão já passou (é anterior à data atual)
-                    if (plantao.status === 'realizado' || dataPlantao < hoje) {
-                        plantoesRealizados++;
-                    }
-                    
-                    totalPlantoes++;
+        Object.values(plantoes).forEach(plantao => {
+            if (plantao.status !== 'cancelado') {
+                // Verificar se o plantão já foi realizado
+                const dataPlantao = new Date(padronizarFormatoData(plantao.data) + 'T00:00:00');
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                
+                // Considerar como realizado se:
+                // 1. O status for explicitamente 'realizado' OU
+                // 2. A data do plantão já passou (é anterior à data atual)
+                if (plantao.status === 'realizado' || dataPlantao < hoje) {
+                    plantoesRealizados++;
                 }
-            });
-        }
+                
+                totalPlantoes++;
+            }
+        });
         
         // Adicionar saldo anterior
         if (plantoes.saldoAnterior) {
@@ -323,7 +366,7 @@ async function atualizarTotalPlantoes(user) {
     }
     
     // Buscar folgas usadas e atualizar saldo de folgas
-    const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+    const folgasRef = ref(db, `folgas/${user.uid}`);
     const folgasSnapshot = await get(folgasRef);
     
     let folgasUsadas = 0;
@@ -385,21 +428,21 @@ function iniciarListenersRealtime(user) {
     };
 
     // Listener para férias
-    const feriasRef = ref(db, `ferias/${user.uid}/registros`);
+    const feriasRef = ref(db, `ferias/${user.uid}`);
     onValue(feriasRef, (snapshot) => {
         console.log('Atualização em tempo real - férias:', snapshot.val());
         debounceCarregarDados(user);
     });
 
     // Listener para plantões
-    const plantoesRef2 = ref(db, `plantoes/${user.uid}/registros`);
+    const plantoesRef2 = ref(db, `plantoes/${user.uid}`);
     onValue(plantoesRef2, (snapshot) => {
         console.log('Atualização em tempo real - plantões:', snapshot.val());
         debounceCarregarDados(user);
     });
 
     // Listener para folgas
-    const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+    const folgasRef = ref(db, `folgas/${user.uid}`);
     onValue(folgasRef, (snapshot) => {
         console.log('Atualização detectada nas folgas');
         
@@ -408,7 +451,7 @@ function iniciarListenersRealtime(user) {
     });
 
     // Listener para trabalho
-    const trabalhoRef = ref(db, `trabalho/${user.uid}/registros`);
+    const trabalhoRef = ref(db, `trabalho/${user.uid}`);
     onValue(trabalhoRef, (snapshot) => {
         console.log('Atualização em tempo real - trabalho:', snapshot.val());
         debounceCarregarDados(user);

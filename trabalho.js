@@ -173,7 +173,8 @@ function carregarRegistros() {
         let diasRemoto = 0;
         
         if (snapshot.exists()) {
-            const registros = [];
+            const registrosPendentes = [];
+            const registrosRealizados = [];
             
             snapshot.forEach((childSnapshot) => {
                 const registro = childSnapshot.val();
@@ -199,53 +200,90 @@ function carregarRegistros() {
                     registro.status = 'Pendente';
                 }
                 
-                registros.push(registro);
+                // Calcular a diferença de dias entre a data do registro e hoje
+                const diffTime = Math.abs(dataHoje - dataReg);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 
-                if (registro.modalidade === 'presencial') {
-                    diasPresencial++;
-                } else {
-                    diasRemoto++;
+                // Separar registros em pendentes e realizados
+                if (registro.status === 'Pendente' || registro.status === 'Em andamento') {
+                    registrosPendentes.push(registro);
+                } else if (diffDays <= 30) {
+                    // Registros realizados (últimos 30 dias)
+                    registrosRealizados.push(registro);
+                }
+                
+                // Contabilizar para as estatísticas
+                if ((registro.status !== 'Realizado' || diffDays <= 30) && registro.modalidade) {
+                    if (registro.modalidade === 'presencial') {
+                        diasPresencial++;
+                    } else {
+                        diasRemoto++;
+                    }
                 }
             });
             
-            // Ordenar por data em ordem crescente
-            registros.sort((a, b) => a.dataAjustada - b.dataAjustada);
+            // Ordenar registros pendentes em ordem cronológica (do mais próximo para o mais distante)
+            registrosPendentes.sort((a, b) => a.dataAjustada - b.dataAjustada);
             
-            registros.forEach(registro => {
-                const dataFormatada = formatarDataCompleta(registro.dataAjustada);
-                const row = document.createElement('tr');
-                
-                // Adicionar classe para registros realizados
-                if (registro.status === 'Realizado') {
-                    row.classList.add('registro-realizado');
-                }
-                
-                row.innerHTML = `
-                    <td>${dataFormatada}</td>
-                    <td>
-                        <span class="badge badge-${registro.modalidade}">
-                            <i class="fas fa-${registro.modalidade === 'presencial' ? 'building' : 'laptop-house'}"></i>
-                            ${registro.modalidade.charAt(0).toUpperCase() + registro.modalidade.slice(1)}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge badge-${registro.status.toLowerCase().replace(' ', '-')}">
-                            ${registro.status}
-                        </span>
-                    </td>
-                    <td>
-                        ${registro.status === 'Pendente' ? `
-                            <div class="table-actions">
-                                <button onclick="excluirRegistro('${registro.id}')" class="btn-icon delete" title="Excluir registro">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        ` : ''}
+            // Ordenar registros realizados do mais recente para o mais antigo
+            registrosRealizados.sort((a, b) => b.dataAjustada - a.dataAjustada);
+            
+            // Adicionar cabeçalho para registros pendentes se existirem
+            if (registrosPendentes.length > 0) {
+                const headerRow = document.createElement('tr');
+                headerRow.classList.add('section-header');
+                headerRow.innerHTML = `
+                    <td colspan="4">
+                        <h3><i class="fas fa-calendar-day"></i> Registros Pendentes</h3>
                     </td>
                 `;
+                historicoTrabalho.appendChild(headerRow);
                 
-                historicoTrabalho.appendChild(row);
-            });
+                // Adicionar registros pendentes
+                registrosPendentes.forEach(registro => {
+                    adicionarLinhaRegistro(registro, historicoTrabalho);
+                });
+            }
+            
+            // Adicionar cabeçalho para registros realizados se existirem
+            if (registrosRealizados.length > 0) {
+                const headerRow = document.createElement('tr');
+                headerRow.classList.add('section-header');
+                headerRow.innerHTML = `
+                    <td colspan="4">
+                        <h3><i class="fas fa-check-circle"></i> Registros Realizados (Últimos 30 dias)</h3>
+                    </td>
+                `;
+                historicoTrabalho.appendChild(headerRow);
+                
+                // Adicionar registros realizados
+                registrosRealizados.forEach(registro => {
+                    adicionarLinhaRegistro(registro, historicoTrabalho);
+                });
+            }
+            
+            // Adicionar botão "Ver todos os registros" se houver mais registros
+            const totalRegistros = snapshot.val() && snapshot.val().registros ? 
+                Object.keys(snapshot.val().registros).length : 0;
+            
+            if (totalRegistros > (registrosPendentes.length + registrosRealizados.length)) {
+                const verTodosRow = document.createElement('tr');
+                verTodosRow.classList.add('ver-todos-row');
+                verTodosRow.innerHTML = `
+                    <td colspan="4" class="text-center">
+                        <button id="btnVerTodos" class="btn-outline">
+                            <i class="fas fa-list"></i>
+                            Ver todos os registros (${totalRegistros})
+                        </button>
+                    </td>
+                `;
+                historicoTrabalho.appendChild(verTodosRow);
+                
+                // Adicionar evento para o botão "Ver todos"
+                document.getElementById('btnVerTodos').addEventListener('click', () => {
+                    window.location.href = 'lista-semanal.html';
+                });
+            }
             
             // Atualizar contadores
             document.getElementById('diasPresencial').textContent = diasPresencial;
@@ -254,8 +292,47 @@ function carregarRegistros() {
     });
 }
 
+// Função auxiliar para adicionar uma linha de registro à tabela
+function adicionarLinhaRegistro(registro, tabela) {
+    const dataFormatada = formatarDataCompleta(registro.dataAjustada);
+    const row = document.createElement('tr');
+    
+    // Adicionar classe para registros realizados
+    if (registro.status === 'Realizado') {
+        row.classList.add('registro-realizado');
+    } else if (registro.status === 'Em andamento') {
+        row.classList.add('registro-em-andamento');
+    }
+    
+    row.innerHTML = `
+        <td>${dataFormatada}</td>
+        <td>
+            <span class="badge badge-${registro.modalidade}">
+                <i class="fas fa-${registro.modalidade === 'presencial' ? 'building' : 'laptop-house'}"></i>
+                ${registro.modalidade.charAt(0).toUpperCase() + registro.modalidade.slice(1)}
+            </span>
+        </td>
+        <td>
+            <span class="badge badge-${registro.status.toLowerCase().replace(' ', '-')}">
+                ${registro.status}
+            </span>
+        </td>
+        <td>
+            ${registro.status === 'Pendente' ? `
+                <div class="table-actions">
+                    <button onclick="excluirRegistro('${registro.id}')" class="btn-icon delete" title="Excluir registro">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            ` : ''}
+        </td>
+    `;
+    
+    tabela.appendChild(row);
+}
+
 // Função para excluir registro
-window.excluirRegistro = async function(registroId) {
+async function excluirRegistro(registroId) {
     if (confirm('Tem certeza que deseja excluir este registro?')) {
         try {
             const registroRef = ref(db, `trabalho/${currentUser.uid}/${registroId}`);
@@ -263,10 +340,13 @@ window.excluirRegistro = async function(registroId) {
             alert('Registro excluído com sucesso!');
         } catch (error) {
             console.error('Erro ao excluir registro:', error);
-            alert('Erro ao excluir registro: ' + error.message);
+            alert('Erro ao excluir registro. Tente novamente.');
         }
     }
-};
+}
+
+// Adicionar função excluirRegistro ao objeto window
+window.excluirRegistro = excluirRegistro;
 
 // Função para exportar PDF
 window.exportarPDF = async function() {
