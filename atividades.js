@@ -13,16 +13,20 @@ const firebaseConfig = {
     appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
 };
 
+console.log('Inicializando Firebase...');
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
 // Verificar autenticação
+console.log('Verificando autenticação...');
 auth.onAuthStateChanged((user) => {
+    console.log('Estado de autenticação alterado:', user ? `Usuário autenticado: ${user.uid}` : 'Usuário não autenticado');
     if (user) {
         carregarDados(user);
         iniciarListenersRealtime(user);
     } else {
+        console.log('Redirecionando para página de login...');
         window.location.href = 'index.html';
     }
 });
@@ -63,11 +67,14 @@ async function carregarDados(user) {
         }
 
         // Atualizar card de férias
-        document.getElementById('saldoFerias').innerHTML = `
-            ${diasDisponiveis} <small style="font-size: 0.5em; opacity: 0.7">
-                (${diasUsados} usufruídos | ${diasParaProximas} dias para próximas)
-            </small>
-        `;
+        const saldoFeriasElement = document.getElementById('saldoFerias');
+        if (saldoFeriasElement) {
+            saldoFeriasElement.innerHTML = `
+                ${diasDisponiveis} <small style="font-size: 0.5em; opacity: 0.7">
+                    (${diasUsados} usufruídos | ${diasParaProximas} dias para próximas)
+                </small>
+            `;
+        }
 
         // Carregar plantões
         const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
@@ -91,18 +98,29 @@ async function carregarDados(user) {
                 const [dia, mes, ano] = proximoPlantao.data.split('/');
                 const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
                 
-                document.getElementById('proximoPlantaoDay').textContent = dia;
-                document.getElementById('proximoPlantaoMonth').textContent = meses[parseInt(mes) - 1];
-                document.getElementById('proximoPlantaoTime').textContent = `Horário: ${proximoPlantao.horario || '08:00'}`;
+                // Formatar dia e mês com dois dígitos
+                const diaFormatado = dia.padStart(2, '0');
+                const mesFormatado = mes.padStart(2, '0');
+                
+                const proximoPlantaoDayElement = document.getElementById('proximoPlantaoDay');
+                const proximoPlantaoMonthElement = document.getElementById('proximoPlantaoMonth');
+                const proximoPlantaoTimeElement = document.getElementById('proximoPlantaoTime');
+                
+                if (proximoPlantaoDayElement) proximoPlantaoDayElement.textContent = diaFormatado;
+                if (proximoPlantaoMonthElement) proximoPlantaoMonthElement.textContent = `${mesFormatado}/${ano}`;
+                if (proximoPlantaoTimeElement) proximoPlantaoTimeElement.textContent = `Horário: ${proximoPlantao.horario || '08:00'}`;
             }
         }
 
         // Atualizar card de plantões
-        document.getElementById('totalPlantoes').innerHTML = `
-            ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">
-                (${totalPlantoes} total)
-            </small>
-        `;
+        const totalPlantoesElement = document.getElementById('totalPlantoes');
+        if (totalPlantoesElement) {
+            totalPlantoesElement.innerHTML = `
+                ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">
+                    (${totalPlantoes} total)
+                </small>
+            `;
+        }
 
         // Calcular saldo de folgas
         let saldoFolgas = plantoesRealizados; // Cada plantão realizado gera uma folga
@@ -125,13 +143,23 @@ async function carregarDados(user) {
                 const [dia, mes, ano] = proximaFolga.data.split('/');
                 const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
                 
-                document.getElementById('proximaFolgaDay').textContent = dia;
-                document.getElementById('proximaFolgaMonth').textContent = meses[parseInt(mes) - 1];
+                // Formatar dia e mês com dois dígitos
+                const diaFormatado = dia.padStart(2, '0');
+                const mesFormatado = mes.padStart(2, '0');
+                
+                const proximaFolgaDayElement = document.getElementById('proximaFolgaDay');
+                const proximaFolgaMonthElement = document.getElementById('proximaFolgaMonth');
+                
+                if (proximaFolgaDayElement) proximaFolgaDayElement.textContent = diaFormatado;
+                if (proximaFolgaMonthElement) proximaFolgaMonthElement.textContent = `${mesFormatado}/${ano}`;
             }
         }
 
         // Atualizar saldo de folgas
-        document.getElementById('saldoFolgas').textContent = saldoFolgas.toString();
+        const saldoFolgasElement = document.getElementById('saldoFolgas');
+        if (saldoFolgasElement) {
+            saldoFolgasElement.textContent = saldoFolgas.toString();
+        }
 
         // Carregar próximo dia presencial
         const trabalhoRef = ref(db, `trabalho/${user.uid}/registros`);
@@ -165,22 +193,34 @@ async function carregarDados(user) {
             }
         }
 
-        document.getElementById('proximoPresencial').innerHTML = `
-            ${proximoPresencial} 
-            <small style="font-size: 0.5em; opacity: 0.7">(${descricaoPresencial})</small>
-        `;
+        const proximoPresencialElement = document.getElementById('proximoPresencial');
+        if (proximoPresencialElement) {
+            proximoPresencialElement.innerHTML = `
+                ${proximoPresencial} 
+                <small style="font-size: 0.5em; opacity: 0.7">(${descricaoPresencial})</small>
+            `;
+        }
 
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
         // Mostrar erro na interface
-        document.getElementById('saldoFerias').innerHTML = `
-            Erro <small style="font-size: 0.5em; opacity: 0.7">(Falha ao carregar)</small>
-        `;
-        document.getElementById('totalPlantoes').innerHTML = `
-            Erro <small style="font-size: 0.5em; opacity: 0.7">(Falha ao carregar)</small>
-        `;
-        document.getElementById('saldoFolgas').textContent = 'Erro';
-        document.getElementById('proximoPresencial').textContent = 'Erro ao carregar';
+        const saldoFeriasElement = document.getElementById('saldoFerias');
+        const totalPlantoesElement = document.getElementById('totalPlantoes');
+        const saldoFolgasElement = document.getElementById('saldoFolgas');
+        const proximoPresencialElement = document.getElementById('proximoPresencial');
+        
+        if (saldoFeriasElement) {
+            saldoFeriasElement.innerHTML = `
+                Erro <small style="font-size: 0.5em; opacity: 0.7">(Falha ao carregar)</small>
+            `;
+        }
+        if (totalPlantoesElement) {
+            totalPlantoesElement.innerHTML = `
+                Erro <small style="font-size: 0.5em; opacity: 0.7">(Falha ao carregar)</small>
+            `;
+        }
+        if (saldoFolgasElement) saldoFolgasElement.textContent = 'Erro';
+        if (proximoPresencialElement) proximoPresencialElement.textContent = 'Erro ao carregar';
     }
 }
 

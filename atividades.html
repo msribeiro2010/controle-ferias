@@ -373,5 +373,27 @@
     </div>
 
     <script type="module" src="atividades.js"></script>
+    <script>
+        // Script de depuração para verificar se os elementos existem
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Verificando elementos HTML:');
+            const elementos = [
+                'saldoFerias', 
+                'totalPlantoes', 
+                'saldoFolgas', 
+                'proximoPresencial',
+                'proximoPlantaoDay',
+                'proximoPlantaoMonth',
+                'proximoPlantaoTime',
+                'proximaFolgaDay',
+                'proximaFolgaMonth'
+            ];
+            
+            elementos.forEach(id => {
+                const elemento = document.getElementById(id);
+                console.log(`Elemento #${id}: ${elemento ? 'Encontrado' : 'NÃO ENCONTRADO'}`);
+            });
+        });
+    </script>
 </body>
 </html>
