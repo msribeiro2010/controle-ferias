@@ -511,16 +511,29 @@
 
         /* Estilo moderno para os alertas */
         .alerta-plantao {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 20px;
+            padding: 15px;
             margin: 10px 0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
+            border-left: 4px solid #ffc107;
+            background-color: #fff3cd;
+            color: #856404;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .alerta-plantao i {
+            margin-right: 8px;
+        }
+        
+        .alerta-plantao small {
+            display: block;
+            margin-top: 5px;
+            margin-left: 24px;
+            opacity: 0.8;
+            font-size: 12px;
+            text-transform: uppercase;
         }
 
         /* Alerta de Plantão */
@@ -780,6 +793,7 @@
                 <h1>Bem-vindo, <span id="nomeUsuario">Carregando...</span></h1>
                 <p>Gerencie Férias, Plantões e Trabalho(Presencial ou Remoto)</p>
                 <div id="alertaPlantao" class="alerta-plantao"></div>
+                <div id="alertaFerias" class="alerta-plantao"></div>
                 <div id="alertaAniversario" class="alerta-plantao">
                     <!-- Será preenchido via JavaScript -->
                 </div>
@@ -885,7 +899,7 @@
         // Importações do Firebase
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-        import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+        import { getDatabase, ref, get, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
         // Configuração do Firebase
         const firebaseConfig = {
@@ -921,58 +935,121 @@
 
         // Função para verificar próximo plantão
         async function verificarProximoPlantao(userId) {
+            const alertaPlantao = document.getElementById('alertaPlantao');
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+
             try {
                 const plantoesRef = ref(db, `plantoes/${userId}/registros`);
                 const snapshot = await get(plantoesRef);
                 
-                if (snapshot.exists()) {
-                    const hoje = new Date();
-                    hoje.setHours(0, 0, 0, 0);
+                if (!snapshot.exists()) {
+                    console.log('Nenhum plantão encontrado');
+                    alertaPlantao.innerHTML = `
+                        <i class="fas fa-info-circle"></i>
+                        Nenhum plantão futuro encontrado
+                    `;
+                    return;
+                }
+
+                let proximoPlantao = null;
+                let dataProximoPlantao = null;
+
+                snapshot.forEach((childSnapshot) => {
+                    const plantao = childSnapshot.val();
+                    console.log('Verificando plantão:', plantao);
+
+                    if (plantao.status === 'cancelado' || plantao.status === 'Cancelado') {
+                        return;
+                    }
+
+                    let dataPlantao;
+                    if (plantao.data && plantao.data.includes('/')) {
+                        const [dia, mes, ano] = plantao.data.split('/');
+                        dataPlantao = new Date(ano, mes - 1, dia);
+                    } else if (plantao.data && plantao.data.includes('-')) {
+                        // Data no formato ISO (YYYY-MM-DD)
+                        const [ano, mes, dia] = plantao.data.split('-');
+                        dataPlantao = new Date(ano, mes - 1, dia);
+                    } else if (plantao.data) {
+                        dataPlantao = new Date(plantao.data);
+                    } else {
+                        return;
+                    }
+
+                    dataPlantao.setHours(0, 0, 0, 0);
+                    console.log('Data do plantão convertida:', dataPlantao.toISOString());
+
+                    if (dataPlantao >= hoje && (!proximoPlantao || dataPlantao < dataProximoPlantao)) {
+                        proximoPlantao = plantao;
+                        dataProximoPlantao = dataPlantao;
+                    }
+                });
+
+                if (proximoPlantao) {
+                    console.log('Próximo plantão encontrado:', proximoPlantao);
+                    console.log('Data do próximo plantão:', dataProximoPlantao.toISOString());
                     
-                    let proximoPlantao = null;
+                    // Calcular diferença de dias
+                    const diffTime = dataProximoPlantao - hoje;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     
-                    snapshot.forEach((childSnapshot) => {
-                        const plantao = childSnapshot.val();
-                        if (plantao.status !== 'cancelado') {
-                            const dataPlantao = new Date(plantao.data.split('/').reverse().join('-'));
-                            if (dataPlantao >= hoje) {
-                                if (!proximoPlantao || dataPlantao < new Date(proximoPlantao.data.split('/').reverse().join('-'))) {
-                                    proximoPlantao = plantao;
-                                }
-                            }
-                        }
-                    });
+                    console.log('Diferença em dias:', diffDays);
                     
-                    if (proximoPlantao) {
-                        const dataPlantao = new Date(proximoPlantao.data.split('/').reverse().join('-'));
-                        const diasFaltando = Math.ceil((dataPlantao - hoje) / (1000 * 60 * 60 * 24));
-                        
-                        // Formatar a data para o padrão brasileiro
-                        const [ano, mes, dia] = proximoPlantao.data.split('/');
-                        const dataBR = `${dia}/${mes}/${ano}`;
-                        
-                        const alertaPlantao = document.getElementById('alertaPlantao');
-                        if (diasFaltando > 0) {
-                            alertaPlantao.innerHTML = `
-                                <i class="fas fa-clock"></i>
-                                Seu próximo plantão será em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataBR})
-                            `;
-                        } else if (diasFaltando === 0) {
-                            alertaPlantao.innerHTML = `
-                                <i class="fas fa-exclamation-circle"></i>
-                                Seu plantão é hoje! (${dataBR})
-                            `;
-                            alertaPlantao.style.backgroundColor = '#d4edda';
-                            alertaPlantao.style.color = '#155724';
-                            alertaPlantao.style.borderLeftColor = '#28a745';
-                        }
+                    // Formatar data para exibição
+                    let dataFormatada = '';
+                    if (diffDays === 0) {
+                        dataFormatada = 'Hoje';
+                    } else if (diffDays === 1) {
+                        dataFormatada = 'Amanhã';
+                    } else {
+                        dataFormatada = `Em ${diffDays} dias`;
                     }
                     
-                    // Verificar próximo dia de trabalho presencial
-                    await verificarProximoDiaPresencial(userId);
+                    // Formatar a data no padrão dd/mm/yyyy
+                    const dia = String(dataProximoPlantao.getDate()).padStart(2, '0');
+                    const mes = String(dataProximoPlantao.getMonth() + 1).padStart(2, '0');
+                    const ano = dataProximoPlantao.getFullYear();
+                    const dataBR = `${dia}/${mes}/${ano}`;
+                    
+                    console.log('Data formatada BR:', dataBR);
+                    
+                    dataFormatada += ` (${dataBR})`;
+                    
+                    if (diffDays > 0) {
+                        alertaPlantao.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 5px;">Próximo Plantão</div>
+                            <i class="fas fa-clock"></i>
+                            ${dataFormatada}<br>
+                            <small>PLANTÃO • Agendado</small>
+                        `;
+                        alertaPlantao.style.backgroundColor = '#fff3cd';
+                        alertaPlantao.style.color = '#856404';
+                        alertaPlantao.style.borderLeftColor = '#ffc107';
+                    } else if (diffDays === 0) {
+                        alertaPlantao.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 5px;">Próximo Plantão</div>
+                            <i class="fas fa-exclamation-circle"></i>
+                            ${dataFormatada}<br>
+                            <small>PLANTÃO • Agendado</small>
+                        `;
+                        alertaPlantao.style.backgroundColor = '#d4edda';
+                        alertaPlantao.style.color = '#155724';
+                        alertaPlantao.style.borderLeftColor = '#28a745';
+                    }
+                } else {
+                    console.log('Nenhum próximo plantão encontrado');
+                    alertaPlantao.innerHTML = `
+                        <i class="fas fa-info-circle"></i>
+                        Nenhum plantão futuro encontrado
+                    `;
                 }
             } catch (error) {
                 console.error('Erro ao verificar próximo plantão:', error);
+                alertaPlantao.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Erro ao verificar próximo plantão
+                `;
             }
         }
         
@@ -1058,60 +1135,120 @@
         // Função para verificar próximas férias
         async function verificarProximasFerias(userId) {
             try {
-                const feriasRef = ref(db, `ferias/${userId}/registros`);
-                const snapshot = await get(feriasRef);
+                console.log('Verificando próximas férias para usuário:', userId);
                 
-                if (snapshot.exists()) {
-                    const hoje = new Date();
-                    hoje.setHours(0, 0, 0, 0);
+                // Usar onValue para obter dados em tempo real
+                const feriasRef = ref(db, `ferias/${userId}/registros`);
+                
+                // Limpar qualquer listener anterior
+                const alertaFerias = document.getElementById('alertaFerias');
+                alertaFerias.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando dados de férias...';
+                
+                // Usar onValue para obter dados em tempo real
+                onValue(feriasRef, (snapshot) => {
+                    console.log('Dados de férias atualizados:', snapshot.val());
                     
-                    let proximasFerias = null;
-                    
-                    snapshot.forEach((childSnapshot) => {
-                        const ferias = childSnapshot.val();
-                        if (ferias.status !== 'cancelado') {
-                            const dataFerias = new Date(ferias.dataInicio.split('/').reverse().join('-'));
-                            if (dataFerias >= hoje) {
-                                if (!proximasFerias || dataFerias < new Date(proximasFerias.dataInicio.split('/').reverse().join('-'))) {
-                                    proximasFerias = ferias;
+                    if (snapshot.exists()) {
+                        const hoje = new Date();
+                        hoje.setHours(0, 0, 0, 0);
+                        
+                        let proximasFerias = null;
+                        
+                        // Verificar se temos um objeto com registros dentro ou se são as férias diretamente
+                        const dados = snapshot.val();
+                        const ferias = dados;
+                        
+                        // Converter para array se for um objeto
+                        const feriasArray = Object.entries(ferias).map(([id, ferias]) => {
+                            return { id, ...ferias };
+                        });
+                        
+                        // Filtrar férias futuras
+                        const feriasFuturas = feriasArray.filter(ferias => {
+                            // Verificar formato da data e converter
+                            let dataInicio;
+                            if (ferias.dataInicio) {
+                                if (ferias.dataInicio.includes('/')) {
+                                    const partes = ferias.dataInicio.split('/');
+                                    if (partes.length === 3) {
+                                        dataInicio = new Date(partes[2], partes[1] - 1, partes[0]);
+                                    } else {
+                                        return false;
+                                    }
+                                } else {
+                                    dataInicio = new Date(ferias.dataInicio);
                                 }
+                            } else {
+                                return false;
                             }
+                            
+                            return dataInicio >= hoje;
+                        });
+                        
+                        // Ordenar por data
+                        feriasFuturas.sort((a, b) => {
+                            const dataA = a.dataInicio ? new Date(a.dataInicio.split('/').reverse().join('-')) : new Date();
+                            const dataB = b.dataInicio ? new Date(b.dataInicio.split('/').reverse().join('-')) : new Date();
+                            return dataA - dataB;
+                        });
+                        
+                        // Pegar o primeiro (mais próximo)
+                        proximasFerias = feriasFuturas.length > 0 ? feriasFuturas[0] : null;
+                        
+                        if (proximasFerias) {
+                            console.log('Próximas férias encontradas:', proximasFerias);
+                            
+                            // Converter a data para um objeto Date
+                            let dataInicio;
+                            if (proximasFerias.dataInicio.includes('/')) {
+                                const partes = proximasFerias.dataInicio.split('/');
+                                dataInicio = new Date(partes[2], partes[1] - 1, partes[0]);
+                            } else {
+                                dataInicio = new Date(proximasFerias.dataInicio);
+                            }
+                            
+                            const diasFaltando = Math.ceil((dataInicio - hoje) / (1000 * 60 * 60 * 24));
+                            
+                            // Formatar a data para o padrão dd/mm/yyyy
+                            const dia = String(dataInicio.getDate()).padStart(2, '0');
+                            const mes = String(dataInicio.getMonth() + 1).padStart(2, '0');
+                            const ano = dataInicio.getFullYear();
+                            const dataInicioBR = `${dia}/${mes}/${ano}`;
+                            
+                            if (diasFaltando > 0) {
+                                alertaFerias.innerHTML = `
+                                    <i class="fas fa-umbrella-beach"></i>
+                                    Suas próximas férias começam em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataInicioBR})
+                                `;
+                                alertaFerias.style.backgroundColor = '#fff3cd';
+                                alertaFerias.style.color = '#856404';
+                                alertaFerias.style.borderLeftColor = '#ffc107';
+                            } else if (diasFaltando === 0) {
+                                alertaFerias.innerHTML = `
+                                    <i class="fas fa-umbrella-beach"></i>
+                                    Suas férias começam hoje! (${dataInicioBR})
+                                `;
+                                alertaFerias.style.backgroundColor = '#d4edda';
+                                alertaFerias.style.color = '#155724';
+                                alertaFerias.style.borderLeftColor = '#28a745';
+                            }
+                        } else {
+                            console.log('Nenhumas próximas férias encontradas');
+                            alertaFerias.innerHTML = '';
+                            alertaFerias.style.display = 'none';
                         }
-                    });
-                    
-                    if (proximasFerias) {
-                        const dataFerias = new Date(proximasFerias.dataInicio.split('/').reverse().join('-'));
-                        const diasFaltando = Math.ceil((dataFerias - hoje) / (1000 * 60 * 60 * 24));
-                        
-                        // Formatar a data para o padrão brasileiro
-                        const [ano, mes, dia] = proximasFerias.dataInicio.split('/');
-                        const dataBR = `${dia}/${mes}/${ano}`;
-                        
-                        const alertaFerias = document.createElement('div');
-                        alertaFerias.className = 'alerta-plantao';
-                        alertaFerias.style.marginTop = '1rem';
-                        alertaFerias.style.backgroundColor = '#e3f2fd';
-                        alertaFerias.style.color = '#1976d2';
-                        alertaFerias.style.borderLeftColor = '#1976d2';
-                        
-                        if (diasFaltando > 0) {
-                            alertaFerias.innerHTML = `
-                                <i class="fas fa-umbrella-beach"></i>
-                                Suas férias começam em ${diasFaltando} dia${diasFaltando > 1 ? 's' : ''} (${dataBR})
-                            `;
-                        } else if (diasFaltando === 0) {
-                            alertaFerias.innerHTML = `
-                                <i class="fas fa-umbrella-beach"></i>
-                                Suas férias começam hoje! (${dataBR})
-                            `;
-                            alertaFerias.style.backgroundColor = '#d4edda';
-                            alertaFerias.style.color = '#155724';
-                            alertaFerias.style.borderLeftColor = '#28a745';
-                        }
-                        
-                        document.getElementById('alertaPlantao').after(alertaFerias);
+                    } else {
+                        console.log('Nenhumas férias encontradas para o usuário');
+                        alertaFerias.innerHTML = '';
+                        alertaFerias.style.display = 'none';
                     }
-                }
+                }, (error) => {
+                    console.error('Erro ao verificar próximas férias:', error);
+                    alertaFerias.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Erro ao carregar dados de férias
+                    `;
+                });
             } catch (error) {
                 console.error('Erro ao verificar próximas férias:', error);
             }
@@ -1120,7 +1257,7 @@
         // Verificar autenticação do usuário
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                const usuarioRef = ref(db, `usuarios/${user.uid}`);
+                const usuarioRef = ref(db, `users/${user.uid}`);
                 const usuarioLogado = (await get(usuarioRef)).val();
                 if (usuarioLogado && usuarioLogado.nome) {
                     document.getElementById('nomeUsuario').textContent = usuarioLogado.nome;
@@ -1129,6 +1266,24 @@
                 }
             }
         });
+
+        // Atualizar dados ao clicar no botão
+        // document.getElementById('btnAtualizarDados').addEventListener('click', () => {
+        //     // Limpar qualquer cache do Firebase
+        //     const auth = getAuth();
+        //     const db = getDatabase();
+            
+        //     // Forçar desconexão e reconexão do banco de dados
+        //     const connectedRef = ref(db, '.info/connected');
+        //     get(connectedRef).then(() => {
+        //         // Recarregar a página para forçar uma nova conexão
+        //         window.location.reload();
+        //     }).catch(error => {
+        //         console.error('Erro ao verificar conexão:', error);
+        //         // Recarregar mesmo em caso de erro
+        //         window.location.reload();
+        //     });
+        // });
     </script>
 
     <!-- Adicionar o modal de Feriados -->

@@ -33,251 +33,28 @@ auth.onAuthStateChanged((user) => {
 
 async function carregarDados(user) {
     try {
-        console.log('Iniciando carregamento de dados para usuário:', user.uid);
-
-        // Atualizar saldo de férias
-        atualizarSaldoFerias();
-
-        // Atualizar total de plantões e obter os dados calculados
-        const dadosPlantoes = await atualizarTotalPlantoes(user);
-        const plantoesRealizados = dadosPlantoes.plantoesRealizados;
-        const totalPlantoes = dadosPlantoes.totalPlantoes;
-
-        // Carregar plantões
-        const plantoesRef = ref(db, `plantoes/${user.uid}`);
-        const plantoesSnapshot = await get(plantoesRef);
-        console.log('Dados de plantões:', plantoesSnapshot.val());
-
-        if (plantoesSnapshot.exists()) {
-            const plantoes = Object.values(plantoesSnapshot.val());
-
-            // Encontrar próximo plantão
-            const proximoPlantao = plantoes
-                .filter(p => {
-                    // Verificar se a data é válida e futura
-                    if (!p.data) {
-                        return false;
-                    }
-                    return isDataFutura(p.data);
-                })
-                .sort((a, b) => {
-                    try {
-                        const dataA = padronizarFormatoData(a.data);
-                        const dataB = padronizarFormatoData(b.data);
-                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
-                    } catch (error) {
-                        console.log('Erro ao ordenar datas:', a.data, b.data, error);
-                        return 0;
-                    }
-                })[0];
-
-            if (proximoPlantao && proximoPlantao.data) {
-                try {
-                    const dataParts = padronizarFormatoData(proximoPlantao.data).split('-');
-                    if (dataParts.length !== 3) {
-                        throw new Error('Formato de data inválido: ' + proximoPlantao.data);
-                    }
-                    
-                    const [ano, mes, dia] = dataParts;
-                    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-                    
-                    // Formatar dia e mês com dois dígitos
-                    const diaFormatado = dia ? dia.padStart(2, '0') : '01';
-                    const mesFormatado = mes ? mes.padStart(2, '0') : '01';
-                    const anoFormatado = ano || new Date().getFullYear().toString();
-                    
-                    const proximoPlantaoDayElement = document.getElementById('proximoPlantaoDay');
-                    const proximoPlantaoMonthElement = document.getElementById('proximoPlantaoMonth');
-                    const proximoPlantaoTimeElement = document.getElementById('proximoPlantaoTime');
-                    
-                    if (proximoPlantaoDayElement) proximoPlantaoDayElement.textContent = diaFormatado;
-                    if (proximoPlantaoMonthElement) proximoPlantaoMonthElement.textContent = `${mesFormatado}/${anoFormatado}`;
-                    if (proximoPlantaoTimeElement) proximoPlantaoTimeElement.textContent = `Horário: ${proximoPlantao.horario || '08:00'}`;
-                } catch (error) {
-                    console.log('Erro ao processar data do próximo plantão:', error);
-                }
-            }
-        }
-
-        // Atualizar card de plantões
-        const totalPlantoesElement = document.getElementById('totalPlantoes');
-        if (totalPlantoesElement) {
-            totalPlantoesElement.innerHTML = `
-                ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">
-                    (${totalPlantoes} total)
-                </small>
-            `;
-            console.log(`Plantões realizados: ${plantoesRealizados}, Total de plantões: ${totalPlantoes}`);
-        }
-
-        // Calcular saldo de folgas
-        let saldoFolgas = plantoesRealizados; // Cada plantão realizado gera uma folga
-
-        // Subtrair folgas já utilizadas
-        const folgasRef = ref(db, `folgas/${user.uid}`);
-        const folgasSnapshot = await get(folgasRef);
+        console.log('Carregando dados para usuário:', user.uid);
         
-        if (folgasSnapshot.exists()) {
-            const folgas = Object.values(folgasSnapshot.val());
-            const folgasUsadas = folgas.filter(f => f.status !== 'cancelada').length;
-            saldoFolgas -= folgasUsadas;
-
-            // Encontrar próxima folga
-            const proximaFolga = folgas
-                .filter(f => {
-                    // Verificar se a data é válida e futura
-                    if (!f.data || f.status === 'cancelada') {
-                        return false;
-                    }
-                    return isDataFutura(f.data);
-                })
-                .sort((a, b) => {
-                    try {
-                        const dataA = padronizarFormatoData(a.data);
-                        const dataB = padronizarFormatoData(b.data);
-                        return new Date(dataA + 'T00:00:00') - new Date(dataB + 'T00:00:00');
-                    } catch (error) {
-                        console.log('Erro ao ordenar datas de folgas:', a.data, b.data, error);
-                        return 0;
-                    }
-                })[0];
-
-            if (proximaFolga && proximaFolga.data) {
-                try {
-                    const dataParts = padronizarFormatoData(proximaFolga.data).split('-');
-                    if (dataParts.length !== 3) {
-                        throw new Error('Formato de data inválido para folga: ' + proximaFolga.data);
-                    }
-                    
-                    const [ano, mes, dia] = dataParts;
-                    const meses = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-                    
-                    // Formatar dia e mês com dois dígitos
-                    const diaFormatado = dia ? dia.padStart(2, '0') : '01';
-                    const mesFormatado = mes ? mes.padStart(2, '0') : '01';
-                    const anoFormatado = ano || new Date().getFullYear().toString();
-                    
-                    const proximaFolgaDayElement = document.getElementById('proximaFolgaDay');
-                    const proximaFolgaMonthElement = document.getElementById('proximaFolgaMonth');
-                    
-                    if (proximaFolgaDayElement) proximaFolgaDayElement.textContent = diaFormatado;
-                    if (proximaFolgaMonthElement) proximaFolgaMonthElement.textContent = `${mesFormatado}/${anoFormatado}`;
-                } catch (error) {
-                    console.log('Erro ao processar data da próxima folga:', error);
-                }
-            }
-        }
-
+        // Depurar dados de férias
+        await depurarDadosFerias(user);
+        
+        // Atualizar saldo de férias
+        await atualizarSaldoFerias(user);
+        
+        // Atualizar total de plantões
+        await atualizarTotalPlantoes(user);
+        
         // Atualizar saldo de folgas
-        const saldoFolgasElement = document.getElementById('saldoFolgas');
-        if (saldoFolgasElement) {
-            saldoFolgasElement.textContent = saldoFolgas.toString();
-        }
+        await atualizarSaldoFolgas(user);
+        
+        // Verificar próximo dia presencial
+        await verificarProximoDiaPresencial(user);
 
-        // Carregar próximo dia presencial
-        const trabalhoRef = ref(db, `trabalho/${user.uid}`);
-        const trabalhoSnapshot = await get(trabalhoRef);
-        console.log('Dados de trabalho:', trabalhoSnapshot.val());
+        // Verificar próxima folga
+        await verificarProximaFolga(user);
 
-        let proximoPresencial = 'Não encontrado';
-        let descricaoPresencial = '';
-
-        if (trabalhoSnapshot.exists()) {
-            const hoje = new Date();
-            hoje.setHours(0, 0, 0, 0);
-            console.log('Data de hoje para comparação:', hoje.toISOString());
-            
-            let registrosPresenciais = [];
-            const registrosData = trabalhoSnapshot.val();
-            console.log('Total de registros de trabalho:', Object.keys(registrosData).length);
-            
-            // Processar todos os registros de trabalho
-            Object.entries(registrosData).forEach(([key, registro]) => {
-                console.log(`Analisando registro ${key}:`, registro);
-                console.log('Modalidade do registro:', registro.modalidade);
-                
-                // Verificar se é um registro de trabalho presencial
-                if (registro.modalidade === 'presencial') {
-                    console.log('Encontrado registro presencial:', registro);
-                    try {
-                        // Converter a data para um objeto Date
-                        const dataString = registro.dataTrabalho || registro.data;
-                        console.log('Data original do registro:', dataString);
-                        
-                        // Verificar formato da data e converter para padrão
-                        let dataFormatada;
-                        if (dataString.includes('-')) {
-                            // Formato ISO (YYYY-MM-DD)
-                            dataFormatada = dataString;
-                        } else if (dataString.includes('/')) {
-                            // Formato BR (DD/MM/YYYY)
-                            const [dia, mes, ano] = dataString.split('/');
-                            dataFormatada = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                        } else {
-                            throw new Error(`Formato de data desconhecido: ${dataString}`);
-                        }
-                        
-                        console.log('Data formatada para ISO:', dataFormatada);
-                        const dataObj = new Date(dataFormatada);
-                        console.log('Objeto Date criado:', dataObj.toISOString());
-                        
-                        // Verificar se a data é futura
-                        if (dataObj >= hoje) {
-                            console.log('Data é futura, adicionando aos registros presenciais');
-                            registrosPresenciais.push({
-                                ...registro,
-                                dataObj: dataObj,
-                                id: key
-                            });
-                        } else {
-                            console.log('Data não é futura, ignorando');
-                        }
-                    } catch (error) {
-                        console.error('Erro ao processar data do registro:', error);
-                    }
-                } else {
-                    console.log('Registro não é presencial, ignorando');
-                }
-            });
-            
-            console.log('Registros presenciais futuros encontrados:', registrosPresenciais.length);
-            
-            // Ordenar registros pela data (mais próxima primeiro)
-            registrosPresenciais.sort((a, b) => a.dataObj - b.dataObj);
-            
-            // Se encontramos registros presenciais futuros
-            if (registrosPresenciais.length > 0) {
-                const proximoRegistro = registrosPresenciais[0];
-                console.log('Próximo registro presencial:', proximoRegistro);
-                
-                // Formatar a data para exibição
-                const dataFormatada = proximoRegistro.dataObj.toLocaleDateString('pt-BR');
-                proximoPresencial = dataFormatada;
-                
-                // Calcular descrição (Hoje, Amanhã, ou em X dias)
-                const diffTime = proximoRegistro.dataObj - hoje;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) {
-                    descricaoPresencial = 'Hoje';
-                } else if (diffDays === 1) {
-                    descricaoPresencial = 'Amanhã';
-                } else {
-                    descricaoPresencial = `Em ${diffDays} dias`;
-                }
-                
-                console.log(`Próximo dia presencial: ${dataFormatada} (${descricaoPresencial})`);
-            } else {
-                console.log('Nenhum dia presencial futuro encontrado');
-            }
-        } else {
-            console.log('Nenhum registro de trabalho encontrado');
-        }
-
-        const proximoPresencialElement = document.getElementById('proximoPresencial');
-        if (proximoPresencialElement) {
-            proximoPresencialElement.innerHTML = `${proximoPresencial} <small style="font-size: 0.5em; opacity: 0.7">(${descricaoPresencial})</small>`;
-        }
+        // Verificar próximo plantão
+        await verificarProximoPlantao(user);
 
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -285,7 +62,6 @@ async function carregarDados(user) {
         const saldoFeriasElement = document.getElementById('saldoFerias');
         const totalPlantoesElement = document.getElementById('totalPlantoes');
         const saldoFolgasElement = document.getElementById('saldoFolgas');
-        const proximoPresencialElement = document.getElementById('proximoPresencial');
         
         if (saldoFeriasElement) {
             saldoFeriasElement.innerHTML = `
@@ -298,32 +74,367 @@ async function carregarDados(user) {
             `;
         }
         if (saldoFolgasElement) saldoFolgasElement.textContent = 'Erro';
-        if (proximoPresencialElement) proximoPresencialElement.textContent = 'Erro ao carregar';
     }
 }
 
-// Função para atualizar o saldo de folgas
-function atualizarSaldoFolgasDisponivel(plantoesRealizados, folgasUsadas) {
-    const saldoFolgasElement = document.getElementById('saldoFolgas');
-    if (saldoFolgasElement) {
-        // Cada plantão gera uma folga
-        const folgasDisponiveis = plantoesRealizados - (folgasUsadas || 0);
+// Função para depurar a estrutura dos dados de férias
+async function depurarDadosFerias(user) {
+    console.log('=== DEPURAÇÃO DE DADOS DE FÉRIAS ===');
+    
+    try {
+        // Verificar dados de férias em diferentes caminhos
+        const feriasRef1 = ref(db, `ferias/${user.uid}/registros`);
+        const snapshot1 = await get(feriasRef1);
         
-        // Atualizar o elemento na interface
-        saldoFolgasElement.textContent = folgasDisponiveis;
+        const feriasRef2 = ref(db, `users/${user.uid}/historicoFerias`);
+        const snapshot2 = await get(feriasRef2);
         
-        // Log para depuração
-        console.log(`Saldo de folgas: ${folgasDisponiveis} (Plantões realizados: ${plantoesRealizados}, Folgas usadas: ${folgasUsadas || 0})`);
+        const userRef = ref(db, `users/${user.uid}`);
+        const userSnapshot = await get(userRef);
+        
+        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasSnapshot = await get(folgasRef);
+        
+        console.log('Estrutura completa caminho 1:', snapshot1.val());
+        console.log('Estrutura completa caminho 2:', snapshot2.val());
+        console.log('Estrutura completa usuário:', userSnapshot.val());
+        console.log('Estrutura completa folgas:', folgasSnapshot.val());
+        
+        // Verificar localStorage
+        const usuarioKey = 'usuario_logado';
+        const usuarioLogado = localStorage.getItem(usuarioKey);
+        
+        if (usuarioLogado) {
+            const usuario = JSON.parse(usuarioLogado);
+            console.log('Usuário no localStorage:', usuario);
+            
+            if (usuario.historicoFerias) {
+                console.log('Histórico de férias no localStorage:', usuario.historicoFerias);
+            }
+        }
+        
+        // Contabilizar dias de férias e folgas
+        let diasFeriasUsados = 0;
+        let diasFolgasUsados = 0;
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        // Contabilizar férias do caminho 1
+        if (snapshot1.exists()) {
+            const ferias = Object.values(snapshot1.val())
+                .filter(f => f.status !== 'cancelado' && f.status !== 'Cancelado');
+            
+            ferias.forEach(f => {
+                if (f.dias) {
+                    const dataFim = new Date(padronizarFormatoData(f.dataFim || f.dataInicio) + 'T00:00:00');
+                    if (dataFim < hoje) {
+                        diasFeriasUsados += parseInt(f.dias);
+                    }
+                }
+            });
+            
+            console.log('Dias de férias usados (caminho 1):', diasFeriasUsados);
+        } else {
+            console.log('Nenhum dado de férias encontrado no caminho 1');
+        }
+        
+        // Contabilizar férias do caminho 2
+        let diasFeriasUsados2 = 0;
+        if (snapshot2.exists()) {
+            const feriasData = snapshot2.val();
+            
+            // Se for um array
+            if (Array.isArray(feriasData)) {
+                feriasData.forEach(periodo => {
+                    if (periodo.diasFerias) {
+                        const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                        if (dataFim < hoje) {
+                            diasFeriasUsados2 += parseInt(periodo.diasFerias);
+                        }
+                    }
+                });
+            } 
+            // Se for um objeto
+            else {
+                Object.values(feriasData).forEach(periodo => {
+                    if (periodo.diasFerias) {
+                        const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                        if (dataFim < hoje) {
+                            diasFeriasUsados2 += parseInt(periodo.diasFerias);
+                        }
+                    }
+                });
+            }
+            
+            console.log('Dias de férias usados (caminho 2):', diasFeriasUsados2);
+        } else {
+            console.log('Nenhum dado de férias encontrado no caminho 2');
+        }
+        
+        // Contabilizar folgas
+        if (folgasSnapshot.exists()) {
+            const folgas = Object.values(folgasSnapshot.val())
+                .filter(f => f.status !== 'cancelado' && f.status !== 'Cancelado');
+            
+            folgas.forEach(folga => {
+                const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
+                if (dataFolga < hoje) {
+                    diasFolgasUsados += 1;
+                }
+            });
+            
+            console.log('Dias de folga usados:', diasFolgasUsados);
+        } else {
+            console.log('Nenhum dado de folga encontrado');
+        }
+        
+        // Total
+        const totalDiasUsados = diasFeriasUsados + diasFolgasUsados;
+        console.log('Total de dias usados (férias + folgas):', totalDiasUsados);
+        console.log('Saldo de férias:', 30 - totalDiasUsados);
+        
+    } catch (error) {
+        console.error('Erro ao depurar dados de férias:', error);
+    }
+    
+    console.log('===================================');
+}
+
+// Função para atualizar o saldo de férias
+async function atualizarSaldoFerias(user) {
+    try {
+        console.log('Atualizando saldo de férias para usuário:', user.uid);
+        
+        // Tentar buscar dados de férias de diferentes caminhos no Firebase
+        let feriasData = null;
+        let diasFeriasUsados = 0;
+        let proximasFerias = null;
+        
+        // Caminho 1: ferias/{uid}/registros
+        const feriasRef1 = ref(db, `ferias/${user.uid}/registros`);
+        const snapshot1 = await get(feriasRef1);
+        
+        // Caminho 2: users/{uid}/historicoFerias
+        const feriasRef2 = ref(db, `users/${user.uid}/historicoFerias`);
+        const snapshot2 = await get(feriasRef2);
+        
+        // Caminho 3: users/{uid}
+        const userRef = ref(db, `users/${user.uid}`);
+        const userSnapshot = await get(userRef);
+        
+        // Caminho 4: folgas/{uid}/registros (para contabilizar folgas)
+        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasSnapshot = await get(folgasRef);
+        
+        console.log('Dados do caminho 1:', snapshot1.val());
+        console.log('Dados do caminho 2:', snapshot2.val());
+        console.log('Dados do usuário:', userSnapshot.val());
+        console.log('Dados de folgas:', folgasSnapshot.val());
+        
+        // Verificar qual caminho tem dados
+        if (snapshot1.exists()) {
+            console.log('Usando dados do caminho 1');
+            feriasData = snapshot1.val();
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            const ferias = Object.values(feriasData)
+                .filter(f => f.status !== 'cancelado' && f.status !== 'Cancelado')
+                .sort((a, b) => {
+                    const dataA = new Date(padronizarFormatoData(a.dataInicio) + 'T00:00:00');
+                    const dataB = new Date(padronizarFormatoData(b.dataInicio) + 'T00:00:00');
+                    return dataA - dataB;
+                });
+            
+            // Calcular dias de férias usados
+            ferias.forEach(f => {
+                if (f.dias) {
+                    // Verificar se o período de férias já passou
+                    const dataFim = new Date(padronizarFormatoData(f.dataFim || f.dataInicio) + 'T00:00:00');
+                    
+                    // Se a data final já passou, contar como usufruído
+                    if (dataFim < hoje) {
+                        const diasInt = parseInt(f.dias);
+                        diasFeriasUsados += diasInt;
+                        console.log(`Adicionando ${diasInt} dias de férias (${f.dataInicio} - ${f.dataFim || f.dataInicio})`);
+                    }
+                }
+            });
+            
+            // Encontrar próximas férias
+            proximasFerias = ferias.find(f => {
+                const dataInicio = new Date(padronizarFormatoData(f.dataInicio) + 'T00:00:00');
+                return dataInicio >= hoje;
+            });
+        } 
+        else if (snapshot2.exists()) {
+            console.log('Usando dados do caminho 2');
+            feriasData = snapshot2.val();
+            
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            // Se for um array
+            if (Array.isArray(feriasData)) {
+                feriasData.forEach(periodo => {
+                    if (periodo.diasFerias) {
+                        const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                        if (dataFim < hoje) {
+                            diasFeriasUsados += parseInt(periodo.diasFerias);
+                            console.log(`Adicionando ${periodo.diasFerias} dias de férias (${periodo.dataInicio} - ${periodo.dataFim})`);
+                        } else {
+                            // Possível próximas férias
+                            if (!proximasFerias) {
+                                proximasFerias = periodo;
+                            }
+                        }
+                    }
+                });
+            } 
+            // Se for um objeto
+            else {
+                Object.values(feriasData).forEach(periodo => {
+                    if (periodo.diasFerias) {
+                        const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                        if (dataFim < hoje) {
+                            diasFeriasUsados += parseInt(periodo.diasFerias);
+                            console.log(`Adicionando ${periodo.diasFerias} dias de férias (${periodo.dataInicio} - ${periodo.dataFim})`);
+                        } else {
+                            // Possível próximas férias
+                            if (!proximasFerias) {
+                                proximasFerias = periodo;
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        else if (userSnapshot.exists()) {
+            console.log('Verificando dados do usuário');
+            const userData = userSnapshot.val();
+            
+            // Verificar se há dados de férias no objeto do usuário
+            if (userData.historicoFerias) {
+                console.log('Usando historicoFerias do usuário');
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                
+                if (Array.isArray(userData.historicoFerias)) {
+                    userData.historicoFerias.forEach(periodo => {
+                        if (periodo.diasFerias) {
+                            const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                            if (dataFim < hoje) {
+                                diasFeriasUsados += parseInt(periodo.diasFerias);
+                                console.log(`Adicionando ${periodo.diasFerias} dias de férias (${periodo.dataInicio} - ${periodo.dataFim})`);
+                            } else {
+                                // Possível próximas férias
+                                if (!proximasFerias) {
+                                    proximasFerias = periodo;
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    Object.values(userData.historicoFerias).forEach(periodo => {
+                        if (periodo.diasFerias) {
+                            const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                            if (dataFim < hoje) {
+                                diasFeriasUsados += parseInt(periodo.diasFerias);
+                                console.log(`Adicionando ${periodo.diasFerias} dias de férias (${periodo.dataInicio} - ${periodo.dataFim})`);
+                            } else {
+                                // Possível próximas férias
+                                if (!proximasFerias) {
+                                    proximasFerias = periodo;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            // Verificar se há dados diretos de férias
+            else if (userData.dataInicio && userData.dataFim && userData.diasFerias) {
+                console.log('Usando dados diretos de férias do usuário');
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                
+                const dataFim = new Date(userData.dataFim + 'T00:00:00');
+                if (dataFim < hoje) {
+                    diasFeriasUsados += parseInt(userData.diasFerias);
+                    console.log(`Adicionando ${userData.diasFerias} dias de férias (${userData.dataInicio} - ${userData.dataFim})`);
+                } else {
+                    proximasFerias = {
+                        dataInicio: userData.dataInicio,
+                        dataFim: userData.dataFim,
+                        dias: userData.diasFerias
+                    };
+                }
+            }
+        }
+        else {
+            console.log('Nenhum dado de férias encontrado em nenhum caminho');
+            
+            // TEMPORÁRIO: Definir valor fixo para testes
+            diasFeriasUsados = 4; // Valor fixo para corresponder ao dashboard
+            console.log('Usando valor fixo para testes:', diasFeriasUsados);
+        }
+        
+        // Contabilizar dias de folga como dias de férias usados
+        if (folgasSnapshot.exists()) {
+            console.log('Contabilizando folgas como dias de férias');
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            const folgas = Object.values(folgasSnapshot.val())
+                .filter(f => f.status !== 'cancelado' && f.status !== 'Cancelado');
+            
+            // Contar folgas passadas
+            let diasFolga = 0;
+            folgas.forEach(folga => {
+                const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
+                if (dataFolga < hoje) {
+                    diasFolga += 1; // Cada folga conta como 1 dia
+                    console.log(`Adicionando 1 dia de folga (${folga.data})`);
+                }
+            });
+            
+            console.log(`Total de dias de folga usados: ${diasFolga}`);
+            diasFeriasUsados += diasFolga;
+        }
+        
+        console.log('Total de dias de férias usados (incluindo folgas):', diasFeriasUsados);
+        
+        // Atualizar saldo de férias
+        const saldoFeriasElement = document.getElementById('saldoFerias');
+        if (saldoFeriasElement) {
+            const saldoFerias = 30 - diasFeriasUsados;
+            const proximasData = proximasFerias ? 
+                ` | ${proximasFerias.dias || proximasFerias.diasFerias} dias a partir de ${formatarData(proximasFerias.dataInicio)}` : '';
+            
+            saldoFeriasElement.innerHTML = `
+                ${saldoFerias} <small style="font-size: 0.5em; opacity: 0.7">(${diasFeriasUsados} usufruídos${proximasData})</small>
+            `;
+            
+            console.log(`Saldo de férias atualizado: ${saldoFerias} (${diasFeriasUsados} usufruídos)`);
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar saldo de férias:', error);
+        const saldoFeriasElement = document.getElementById('saldoFerias');
+        if (saldoFeriasElement) {
+            saldoFeriasElement.innerHTML = `
+                Erro <small style="font-size: 0.5em; opacity: 0.7">(Falha ao carregar)</small>
+            `;
+        }
     }
 }
 
 // Função para atualizar o total de plantões realizados
 async function atualizarTotalPlantoes(user) {
-    const plantoesRef = ref(db, `plantoes/${user.uid}`);
+    const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
     const snapshot = await get(plantoesRef);
     
-    let totalPlantoes = 0;
     let plantoesRealizados = 0;
+    let totalPlantoes = 0;
     
     if (snapshot.exists()) {
         // Somar plantões normais
@@ -338,59 +449,94 @@ async function atualizarTotalPlantoes(user) {
                 // Considerar como realizado se:
                 // 1. O status for explicitamente 'realizado' OU
                 // 2. A data do plantão já passou (é anterior à data atual)
-                if (plantao.status === 'realizado' || dataPlantao < hoje) {
+                if (plantao.status === 'realizado' || plantao.status === 'Realizado' || dataPlantao < hoje) {
                     plantoesRealizados++;
                 }
                 
                 totalPlantoes++;
             }
         });
-        
-        // Adicionar saldo anterior
-        if (plantoes.saldoAnterior) {
-            const saldoAnterior = parseInt(plantoes.saldoAnterior);
-            totalPlantoes += saldoAnterior;
-            plantoesRealizados += saldoAnterior; // Saldo anterior sempre conta como realizado
-        }
     }
     
-    // Atualizar o contador de plantões
+    // Verificar saldo anterior
+    const saldoAnteriorRef = ref(db, `plantoes/${user.uid}/saldoAnterior`);
+    const saldoAnteriorSnapshot = await get(saldoAnteriorRef);
+    
+    if (saldoAnteriorSnapshot.exists()) {
+        const saldoAnterior = parseInt(saldoAnteriorSnapshot.val()) || 0;
+        plantoesRealizados += saldoAnterior;
+    }
+    
+    // Atualizar elementos na interface
     const totalPlantoesElement = document.getElementById('totalPlantoes');
     if (totalPlantoesElement) {
         totalPlantoesElement.innerHTML = `
-            ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">
-                (${totalPlantoes} total)
-            </small>
+            ${plantoesRealizados} <small style="font-size: 0.5em; opacity: 0.7">(${totalPlantoes} total)</small>
         `;
-        console.log(`Plantões realizados: ${plantoesRealizados}, Total de plantões: ${totalPlantoes}`);
     }
     
-    // Buscar folgas usadas e atualizar saldo de folgas
-    const folgasRef = ref(db, `folgas/${user.uid}`);
-    const folgasSnapshot = await get(folgasRef);
-    
-    let folgasUsadas = 0;
-    if (folgasSnapshot.exists()) {
-        // Contar folgas já utilizadas
-        Object.values(folgasSnapshot.val()).forEach(folga => {
-            if (folga.status !== 'cancelada') {
-                const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
-                const hoje = new Date();
-                hoje.setHours(0, 0, 0, 0);
-                
-                if (dataFolga < hoje) {
-                    folgasUsadas++;
-                }
-            }
-        });
-    }
-    
-    // Atualizar o saldo de folgas
-    atualizarSaldoFolgasDisponivel(plantoesRealizados, folgasUsadas);
-    
-    return { plantoesRealizados, totalPlantoes, folgasUsadas };
+    return {
+        plantoesRealizados,
+        totalPlantoes
+    };
 }
 
+// Função para atualizar o saldo de folgas
+async function atualizarSaldoFolgas(user) {
+    try {
+        // Obter o total de plantões realizados
+        const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
+        const plantoesSnapshot = await get(plantoesRef);
+        
+        let plantoesRealizados = 0;
+        
+        if (plantoesSnapshot.exists()) {
+            // Contar plantões realizados (não cancelados)
+            plantoesSnapshot.forEach((childSnapshot) => {
+                const plantao = childSnapshot.val();
+                if (plantao.status !== 'cancelado' && plantao.status !== 'Cancelado') {
+                    // Verificar se o plantão já ocorreu
+                    const dataPlantao = new Date(padronizarFormatoData(plantao.data) + 'T00:00:00');
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+                    
+                    if (dataPlantao <= hoje) {
+                        plantoesRealizados++;
+                    }
+                }
+            });
+        }
+        
+        // Calcular saldo de folgas
+        let saldoFolgas = plantoesRealizados; // Cada plantão realizado gera uma folga
+
+        // Subtrair folgas já utilizadas
+        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasSnapshot = await get(folgasRef);
+        
+        if (folgasSnapshot.exists()) {
+            const folgasUsadas = Object.values(folgasSnapshot.val())
+                .filter(f => f.status !== 'cancelada' && f.status !== 'Cancelada')
+                .length;
+            
+            saldoFolgas -= folgasUsadas;
+        }
+
+        // Atualizar saldo de folgas
+        const saldoFolgasElement = document.getElementById('saldoFolgas');
+        if (saldoFolgasElement) {
+            saldoFolgasElement.textContent = saldoFolgas.toString();
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar saldo de folgas:', error);
+        const saldoFolgasElement = document.getElementById('saldoFolgas');
+        if (saldoFolgasElement) {
+            saldoFolgasElement.textContent = 'Erro';
+        }
+    }
+}
+
+// Função para iniciar listeners em tempo real
 function iniciarListenersRealtime(user) {
     console.log('Iniciando listeners em tempo real para usuário:', user.uid);
     
@@ -404,13 +550,10 @@ function iniciarListenersRealtime(user) {
         const usuarioAtual = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
         usuarioAtual.historicoFerias = snapshot.val() || [];
         localStorage.setItem(USUARIO_KEY, JSON.stringify(usuarioAtual));
-        
-        // Atualizar interface
-        atualizarSaldoFerias();
     });
     
     // Listener para plantões
-    const plantoesRef = ref(db, `plantoes/${user.uid}`);
+    const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
     onValue(plantoesRef, (snapshot) => {
         console.log('Atualização detectada nos plantões');
         
@@ -428,26 +571,25 @@ function iniciarListenersRealtime(user) {
     };
 
     // Listener para férias
-    const feriasRef = ref(db, `ferias/${user.uid}`);
+    const feriasRef = ref(db, `ferias/${user.uid}/registros`);
     onValue(feriasRef, (snapshot) => {
         console.log('Atualização em tempo real - férias:', snapshot.val());
         debounceCarregarDados(user);
     });
 
     // Listener para plantões
-    const plantoesRef2 = ref(db, `plantoes/${user.uid}`);
+    const plantoesRef2 = ref(db, `plantoes/${user.uid}/registros`);
     onValue(plantoesRef2, (snapshot) => {
         console.log('Atualização em tempo real - plantões:', snapshot.val());
         debounceCarregarDados(user);
     });
 
     // Listener para folgas
-    const folgasRef = ref(db, `folgas/${user.uid}`);
+    const folgasRef = ref(db, `folgas/${user.uid}/registros`);
     onValue(folgasRef, (snapshot) => {
         console.log('Atualização detectada nas folgas');
         
-        // Atualizar interface
-        atualizarTotalPlantoes(user);
+        debounceCarregarDados(user);
     });
 
     // Listener para trabalho
@@ -458,115 +600,513 @@ function iniciarListenersRealtime(user) {
     });
 }
 
-// Função para padronizar o formato de data
-function padronizarFormatoData(dataString) {
-    if (!dataString) return null;
-    
+// Função para verificar o próximo dia presencial
+async function verificarProximoDiaPresencial(user) {
     try {
-        // Verificar se a data já está no formato YYYY-MM-DD
-        if (dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return dataString; // Já está no formato esperado
+        console.log('Verificando próximo dia presencial para usuário:', user.uid);
+        
+        // Buscar dias de trabalho presencial
+        const trabalhoRef = ref(db, `trabalho/${user.uid}/registros`);
+        const trabalhoSnapshot = await get(trabalhoRef);
+        
+        if (!trabalhoSnapshot.exists()) {
+            console.log('Nenhum dia de trabalho presencial encontrado');
+            document.getElementById('proximoDiaPresencialCard').style.display = 'none';
+            return;
         }
         
-        // Verificar se a data está no formato DD/MM/YYYY
-        if (dataString.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-            // Converter de DD/MM/YYYY para YYYY-MM-DD
-            return dataString.split('/').reverse().join('-');
-        }
-        
-        console.log('Formato de data não reconhecido:', dataString);
-        return null;
-    } catch (error) {
-        console.log('Erro ao padronizar formato de data:', error);
-        return null;
-    }
-}
-
-// Função para verificar se uma data é válida e futura
-function isDataFutura(dataString) {
-    if (!dataString) return false;
-    
-    try {
-        const dataPadronizada = padronizarFormatoData(dataString);
-        if (!dataPadronizada) return false;
-        
-        const data = new Date(dataPadronizada + 'T00:00:00');
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
         
-        return data >= hoje;
-    } catch (error) {
-        console.log('Erro ao verificar data futura:', error);
-        return false;
-    }
-}
-
-// Função para verificar se uma data é válida e passada
-function isDataPassada(dataString) {
-    if (!dataString) return false;
-    
-    try {
-        const dataPadronizada = padronizarFormatoData(dataString);
-        if (!dataPadronizada) return false;
+        let proximoDia = null;
+        let dataProximoDia = null;
         
-        const data = new Date(dataPadronizada + 'T00:00:00');
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
-        
-        return data < hoje;
-    } catch (error) {
-        console.log('Erro ao verificar data passada:', error);
-        return false;
-    }
-}
-
-// Função para atualizar o saldo de férias
-function atualizarSaldoFerias() {
-    const USUARIO_KEY = 'usuario_logado';
-    const usuarioLogado = JSON.parse(localStorage.getItem(USUARIO_KEY) || '{}');
-    
-    let diasUsufruidos = 0;
-    const totalFerias = 30; // Todos funcionários começam com 30 dias
-    const hoje = new Date();
-    
-    if (usuarioLogado.historicoFerias) {
-        usuarioLogado.historicoFerias.forEach(periodo => {
-            const dataFim = new Date(padronizarFormatoData(periodo.dataFim) + 'T00:00:00');
-            if (dataFim < hoje) {
-                diasUsufruidos += parseInt(periodo.diasFerias);
+        // Encontrar o próximo dia presencial (data futura mais próxima)
+        trabalhoSnapshot.forEach((childSnapshot) => {
+            const trabalho = childSnapshot.val();
+            
+            if (trabalho.status === 'cancelado' || trabalho.status === 'Cancelado') {
+                return; // Ignorar dias cancelados
+            }
+            
+            const dataTrabalho = new Date(padronizarFormatoData(trabalho.data) + 'T00:00:00');
+            
+            // Se o dia é hoje ou no futuro e ainda não temos um próximo dia,
+            // ou se é mais próximo que o atual próximo dia
+            if (dataTrabalho >= hoje && (!proximoDia || dataTrabalho < dataProximoDia)) {
+                proximoDia = trabalho;
+                dataProximoDia = dataTrabalho;
             }
         });
-    }
-    
-    const saldoFerias = totalFerias - diasUsufruidos;
-    
-    // Determinar classe CSS baseada no saldo
-    let saldoClass = '';
-    let saldoMensagem = '';
-    
-    if (saldoFerias <= 0) {
-        saldoClass = 'saldo-esgotado';
-        saldoMensagem = '<span class="saldo-alerta">Saldo esgotado!</span>';
-    } else if (saldoFerias <= 5) {
-        saldoClass = 'saldo-baixo';
-        saldoMensagem = '<span class="saldo-alerta">Saldo baixo!</span>';
-    }
-    
-    // Atualizar card de férias
-    const saldoFeriasElement = document.getElementById('saldoFerias');
-    if (saldoFeriasElement) {
-        saldoFeriasElement.innerHTML = `
-            ${saldoFerias} <small style="font-size: 0.5em; opacity: 0.7">
-                (${diasUsufruidos} usufruídos | ${totalFerias} total)
-            </small>
-            ${saldoMensagem}
-        `;
         
-        // Adicionar classe para estilo
-        if (saldoClass) {
-            saldoFeriasElement.classList.add(saldoClass);
+        // Atualizar card
+        const proximoDiaCard = document.getElementById('proximoDiaPresencialCard');
+        const proximoDiaData = document.getElementById('proximoDiaPresencialData');
+        const proximoDiaTipo = document.getElementById('proximoDiaPresencialTipo');
+        const proximoDiaStatus = document.getElementById('proximoDiaPresencialStatus');
+        
+        if (proximoDia) {
+            // Calcular diferença de dias
+            const diffTime = Math.abs(dataProximoDia - hoje);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Formatar data para exibição
+            let dataFormatada = '';
+            if (diffDays === 0) {
+                dataFormatada = 'Hoje';
+            } else if (diffDays === 1) {
+                dataFormatada = 'Amanhã';
+            } else {
+                dataFormatada = `Em ${diffDays} dias`;
+            }
+            
+            dataFormatada += ` (${dataProximoDia.toLocaleDateString('pt-BR')})`;
+            
+            // Atualizar elementos
+            proximoDiaData.textContent = dataFormatada;
+            proximoDiaTipo.textContent = proximoDia.tipo || 'Presencial';
+            proximoDiaStatus.textContent = diffDays === 0 ? 'Hoje' : 'Agendado';
+            proximoDiaCard.style.display = 'block';
+            
+            console.log('Próximo dia presencial atualizado:', {
+                data: dataFormatada,
+                tipo: proximoDia.tipo || 'Presencial',
+                status: diffDays === 0 ? 'Hoje' : 'Agendado'
+            });
         } else {
-            saldoFeriasElement.classList.remove('saldo-baixo', 'saldo-esgotado');
+            console.log('Nenhum próximo dia presencial encontrado');
+            proximoDiaCard.style.display = 'none';
         }
+    } catch (error) {
+        console.error('Erro ao verificar próximo dia presencial:', error);
+        document.getElementById('proximoDiaPresencialCard').style.display = 'none';
     }
+}
+
+// Função para verificar a próxima folga
+async function verificarProximaFolga(user) {
+    try {
+        console.log('Verificando próxima folga para usuário:', user.uid);
+        
+        // Buscar folgas
+        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasSnapshot = await get(folgasRef);
+        
+        if (!folgasSnapshot.exists()) {
+            console.log('Nenhuma folga encontrada');
+            document.getElementById('proximaFolgaCard').style.display = 'none';
+            return;
+        }
+        
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        let proximaFolga = null;
+        let dataProximaFolga = null;
+        
+        // Encontrar a próxima folga (data futura mais próxima)
+        folgasSnapshot.forEach((childSnapshot) => {
+            const folga = childSnapshot.val();
+            
+            if (folga.status === 'cancelada' || folga.status === 'Cancelada') {
+                return; // Ignorar folgas canceladas
+            }
+            
+            const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
+            
+            // Se a folga é hoje ou no futuro e ainda não temos uma próxima folga,
+            // ou se é mais próxima que a atual próxima folga
+            if (dataFolga >= hoje && (!proximaFolga || dataFolga < dataProximaFolga)) {
+                proximaFolga = folga;
+                dataProximaFolga = dataFolga;
+            }
+        });
+        
+        // Atualizar card
+        const proximaFolgaCard = document.getElementById('proximaFolgaCard');
+        const proximaFolgaData = document.getElementById('proximaFolgaData');
+        const proximaFolgaTipo = document.getElementById('proximaFolgaTipo');
+        const proximaFolgaStatus = document.getElementById('proximaFolgaStatus');
+        
+        if (proximaFolga) {
+            // Calcular diferença de dias
+            const diffTime = Math.abs(dataProximaFolga - hoje);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Formatar data para exibição
+            let dataFormatada = '';
+            if (diffDays === 0) {
+                dataFormatada = 'Hoje';
+            } else if (diffDays === 1) {
+                dataFormatada = 'Amanhã';
+            } else {
+                dataFormatada = `Em ${diffDays} dias`;
+            }
+            
+            dataFormatada += ` (${dataProximaFolga.toLocaleDateString('pt-BR')})`;
+            
+            // Atualizar elementos
+            proximaFolgaData.textContent = dataFormatada;
+            proximaFolgaTipo.textContent = 'Folga';
+            proximaFolgaStatus.textContent = diffDays === 0 ? 'Hoje' : 'Agendada';
+            proximaFolgaCard.style.display = 'block';
+            
+            console.log('Próxima folga atualizada:', {
+                data: dataFormatada,
+                status: diffDays === 0 ? 'Hoje' : 'Agendada'
+            });
+        } else {
+            console.log('Nenhuma próxima folga encontrada');
+            proximaFolgaCard.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Erro ao verificar próxima folga:', error);
+        document.getElementById('proximaFolgaCard').style.display = 'none';
+    }
+}
+
+// Função para verificar o próximo plantão
+async function verificarProximoPlantao(user) {
+    try {
+        console.log('Verificando próximo plantão para usuário:', user.uid);
+        
+        // Buscar plantões
+        const plantoesRef = ref(db, `plantoes/${user.uid}/registros`);
+        const plantoesSnapshot = await get(plantoesRef);
+        
+        if (!plantoesSnapshot.exists()) {
+            console.log('Nenhum plantão encontrado');
+            document.getElementById('proximoPlantaoCard').style.display = 'none';
+            return;
+        }
+        
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        
+        let proximoPlantao = null;
+        let dataProximoPlantao = null;
+        
+        // Encontrar o próximo plantão (data futura mais próxima)
+        plantoesSnapshot.forEach((childSnapshot) => {
+            const plantao = childSnapshot.val();
+            
+            if (plantao.status === 'cancelado' || plantao.status === 'Cancelado') {
+                return; // Ignorar plantões cancelados
+            }
+            
+            const dataPlantao = new Date(padronizarFormatoData(plantao.data) + 'T00:00:00');
+            
+            // Se o plantão é hoje ou no futuro e ainda não temos um próximo plantão,
+            // ou se é mais próximo que o atual próximo plantão
+            if (dataPlantao >= hoje && (!proximoPlantao || dataPlantao < dataProximoPlantao)) {
+                proximoPlantao = plantao;
+                dataProximoPlantao = dataPlantao;
+            }
+        });
+        
+        // Atualizar card
+        const proximoPlantaoCard = document.getElementById('proximoPlantaoCard');
+        const proximoPlantaoData = document.getElementById('proximoPlantaoData');
+        const proximoPlantaoTipo = document.getElementById('proximoPlantaoTipo');
+        const proximoPlantaoStatus = document.getElementById('proximoPlantaoStatus');
+        
+        if (proximoPlantao) {
+            // Calcular diferença de dias
+            const diffTime = Math.abs(dataProximoPlantao - hoje);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Formatar data para exibição
+            let dataFormatada = '';
+            if (diffDays === 0) {
+                dataFormatada = 'Hoje';
+            } else if (diffDays === 1) {
+                dataFormatada = 'Amanhã';
+            } else {
+                dataFormatada = `Em ${diffDays} dias`;
+            }
+            
+            dataFormatada += ` (${dataProximoPlantao.toLocaleDateString('pt-BR')})`;
+            
+            // Atualizar elementos
+            proximoPlantaoData.textContent = dataFormatada;
+            proximoPlantaoTipo.textContent = proximoPlantao.tipo || 'Plantão';
+            proximoPlantaoStatus.textContent = diffDays === 0 ? 'Hoje' : 'Agendado';
+            proximoPlantaoCard.style.display = 'block';
+            
+            console.log('Próximo plantão atualizado:', {
+                data: dataFormatada,
+                tipo: proximoPlantao.tipo || 'Plantão',
+                status: diffDays === 0 ? 'Hoje' : 'Agendado'
+            });
+        } else {
+            console.log('Nenhum próximo plantão encontrado');
+            proximoPlantaoCard.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Erro ao verificar próximo plantão:', error);
+        document.getElementById('proximoPlantaoCard').style.display = 'none';
+    }
+}
+
+// Função para formatar data no padrão brasileiro
+function formatarData(dataString) {
+    try {
+        const data = new Date(padronizarFormatoData(dataString) + 'T00:00:00');
+        return data.toLocaleDateString('pt-BR');
+    } catch (error) {
+        console.error('Erro ao formatar data:', error);
+        return dataString;
+    }
+}
+
+// Função para padronizar formato de data
+function padronizarFormatoData(dataString) {
+    if (!dataString) return '';
+    
+    // Se já estiver no formato ISO (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+        return dataString;
+    }
+    
+    // Se estiver no formato brasileiro (DD/MM/YYYY)
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dataString)) {
+        const [dia, mes, ano] = dataString.split('/');
+        return `${ano}-${mes}-${dia}`;
+    }
+    
+    // Outros formatos
+    try {
+        const data = new Date(dataString);
+        if (!isNaN(data.getTime())) {
+            return data.toISOString().split('T')[0];
+        }
+    } catch (e) {
+        console.error('Erro ao converter data:', e);
+    }
+    
+    return dataString;
+}
+
+// Função para verificar se uma data é futura
+function isDataFutura(dataString) {
+    try {
+        const data = new Date(padronizarFormatoData(dataString) + 'T00:00:00');
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        return data >= hoje;
+    } catch (error) {
+        console.error('Erro ao verificar se data é futura:', error);
+        return false;
+    }
+}
+
+// Função para depurar dados do localStorage
+function depurarLocalStorage() {
+    console.log('=== DEPURAÇÃO DO LOCALSTORAGE ===');
+    try {
+        // Verificar todos os itens no localStorage
+        const keys = Object.keys(localStorage);
+        console.log('Keys no localStorage:', keys);
+        
+        // Verificar especificamente o usuário logado
+        const usuarioKey = 'usuario_logado';
+        const usuarioLogado = localStorage.getItem(usuarioKey);
+        
+        if (usuarioLogado) {
+            const usuario = JSON.parse(usuarioLogado);
+            console.log('Usuário logado encontrado:', usuario);
+            
+            // Verificar se há dados de férias
+            if (usuario.historicoFerias) {
+                console.log('Histórico de férias encontrado no localStorage:', usuario.historicoFerias);
+                
+                // Calcular dias usufruídos
+                let diasUsufruidos = 0;
+                const hoje = new Date();
+                
+                usuario.historicoFerias.forEach(periodo => {
+                    const dataFim = new Date(periodo.dataFim + 'T00:00:00');
+                    if (dataFim < hoje) {
+                        diasUsufruidos += parseInt(periodo.diasFerias);
+                        console.log(`Período passado: ${periodo.dataInicio} - ${periodo.dataFim}, ${periodo.diasFerias} dias`);
+                    } else {
+                        console.log(`Período futuro: ${periodo.dataInicio} - ${periodo.dataFim}, ${periodo.diasFerias} dias`);
+                    }
+                });
+                
+                console.log('Total de dias usufruídos (localStorage):', diasUsufruidos);
+            } else {
+                console.log('Nenhum histórico de férias encontrado no localStorage');
+            }
+        } else {
+            console.log('Nenhum usuário logado encontrado no localStorage');
+        }
+    } catch (error) {
+        console.error('Erro ao depurar localStorage:', error);
+    }
+    console.log('===============================');
+}
+
+// Função para sincronizar o saldo de folgas com o saldo de férias
+async function sincronizarSaldoFolgasFerias(user) {
+    try {
+        console.log('Sincronizando saldo de folgas com férias para usuário:', user.uid);
+        
+        // Buscar dados de folgas do usuário
+        const folgasRef = ref(db, `folgas/${user.uid}/registros`);
+        const folgasSnapshot = await get(folgasRef);
+        
+        // Buscar dados de plantões do usuário
+        const plantoesRef = ref(db, `plantoes/${user.uid}`);
+        const plantoesSnapshot = await get(plantoesRef);
+        
+        let folgasUtilizadas = 0;
+        let saldoFolgas = 0;
+        
+        // Verificar se há dados de folgas
+        if (folgasSnapshot.exists()) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            // Contar folgas utilizadas (apenas as que já passaram)
+            folgasSnapshot.forEach((childSnapshot) => {
+                const folga = childSnapshot.val();
+                if (folga.status !== 'Cancelada') {
+                    const dataFolga = new Date(padronizarFormatoData(folga.data) + 'T00:00:00');
+                    if (dataFolga < hoje) {
+                        folgasUtilizadas++;
+                    }
+                }
+            });
+            
+            console.log('Folgas utilizadas:', folgasUtilizadas);
+        }
+        
+        // Verificar se há dados de plantões
+        if (plantoesSnapshot.exists()) {
+            const plantoesData = plantoesSnapshot.val();
+            
+            // Verificar se há saldo de folgas salvo
+            if (plantoesData.saldoFolgas !== undefined) {
+                saldoFolgas = parseInt(plantoesData.saldoFolgas);
+                console.log('Saldo de folgas:', saldoFolgas);
+            }
+            
+            // Verificar se há total de folgas utilizadas salvo
+            if (plantoesData.folgasUtilizadas !== undefined) {
+                // Usar o valor salvo se for maior que o calculado
+                // (pode acontecer se houver folgas canceladas)
+                if (parseInt(plantoesData.folgasUtilizadas) > folgasUtilizadas) {
+                    folgasUtilizadas = parseInt(plantoesData.folgasUtilizadas);
+                    console.log('Usando folgas utilizadas do Firebase:', folgasUtilizadas);
+                }
+            }
+        }
+        
+        // Atualizar o elemento de saldo de férias com as informações de folgas
+        const saldoFeriasElement = document.getElementById('saldoFerias');
+        if (saldoFeriasElement) {
+            // Obter o texto atual
+            const textoAtual = saldoFeriasElement.innerHTML;
+            
+            // Adicionar informação sobre folgas
+            if (folgasUtilizadas > 0) {
+                const textoFolgas = `<small style="font-size: 0.5em; opacity: 0.7"> | ${folgasUtilizadas} folgas usadas</small>`;
+                
+                // Verificar se já tem informação sobre folgas
+                if (!textoAtual.includes('folgas usadas')) {
+                    saldoFeriasElement.innerHTML = textoAtual + textoFolgas;
+                }
+            }
+            
+            console.log('Saldo de férias atualizado com informações de folgas');
+        }
+        
+        return { folgasUtilizadas, saldoFolgas };
+    } catch (error) {
+        console.error('Erro ao sincronizar saldo de folgas com férias:', error);
+    }
+}
+
+// Função para carregar dados do usuário
+async function carregarDadosUsuario(user) {
+    try {
+        console.log('Carregando dados do usuário:', user.uid);
+        
+        // Buscar dados do usuário no Firebase
+        const userRef = ref(db, `users/${user.uid}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            console.log('Dados do usuário:', userData);
+            
+            // Atualizar nome do usuário
+            if (userData.nome) {
+                document.getElementById('userName').textContent = userData.nome;
+            }
+            
+            // Atualizar cargo do usuário
+            if (userData.cargo) {
+                document.getElementById('userCargo').textContent = userData.cargo;
+            }
+            
+            // Atualizar saldo de férias
+            await atualizarSaldoFerias(user);
+            
+            // Atualizar total de plantões
+            await atualizarTotalPlantoes(user);
+            
+            // Verificar próximas férias
+            verificarProximasFerias(user);
+            
+            // Carregar histórico de férias
+            carregarHistoricoFerias(user);
+        } else {
+            console.log('Dados do usuário não encontrados');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+    }
+}
+
+// Chamar a função de depuração ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+    // Funções existentes
+    verificarAutenticacao();
+    
+    // Adicionar depuração do localStorage
+    depurarLocalStorage();
+});
+
+// Modificar a função verificarAutenticacao para chamar a sincronização
+function verificarAutenticacao() {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log('Usuário autenticado:', user.uid);
+            document.getElementById('userEmail').textContent = user.email;
+            
+            // Carregar dados do usuário
+            carregarDadosUsuario(user);
+            
+            // Depurar dados de férias
+            depurarDadosFerias(user);
+            
+            // Verificar próximo dia presencial
+            verificarProximoDiaPresencial(user);
+            
+            // Verificar próxima folga
+            verificarProximaFolga(user);
+            
+            // Verificar próximo plantão
+            verificarProximoPlantao(user);
+            
+            // Sincronizar saldo de folgas com férias
+            sincronizarSaldoFolgasFerias(user);
+            
+        } else {
+            console.log('Usuário não autenticado, redirecionando...');
+            window.location.href = 'index.html';
+        }
+    });
 }

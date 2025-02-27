@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forçar Atualização do Plantão</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1976d2;
+        }
+        .card {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #1565c0;
+        }
+        #output {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Forçar Atualização do Plantão</h1>
+        
+        <div class="card">
+            <h2>Instruções</h2>
+            <p>Esta página irá forçar a atualização da data do plantão diretamente na interface do usuário.</p>
+            <p>O script irá:</p>
+            <ol>
+                <li>Buscar o plantão no Firebase</li>
+                <li>Atualizar a data para 03/03/2025</li>
+                <li>Atualizar o localStorage para garantir que a interface mostre a data correta</li>
+            </ol>
+        </div>
+        
+        <div class="card">
+            <h2>Ações</h2>
+            <button id="btnAtualizar" class="btn">Forçar Atualização</button>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importar módulos do Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+        import { getDatabase, ref, get, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
+            authDomain: "controle-func.firebaseapp.com",
+            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
+            projectId: "controle-func",
+            storageBucket: "controle-func.appspot.com",
+            messagingSenderId: "146164640694",
+            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // Elemento para exibir saída
+        const outputElement = document.getElementById('output');
+
+        // Função para adicionar mensagem ao output
+        function log(message) {
+            console.log(message);
+            if (outputElement) {
+                outputElement.textContent += message + '\n';
+            }
+        }
+
+        // Função para forçar a atualização do plantão
+        async function forcarAtualizacao(userId) {
+            try {
+                log('Iniciando processo de atualização forçada...');
+                
+                // 1. Buscar todos os plantões
+                const plantoesRef = ref(db, `plantoes/${userId}/registros`);
+                const snapshot = await get(plantoesRef);
+                
+                if (!snapshot.exists()) {
+                    log('Nenhum plantão encontrado para este usuário');
+                    return false;
+                }
+                
+                log('Plantões encontrados. Processando...');
+                
+                // 2. Encontrar o plantão com data 02/03/2025 (em qualquer formato)
+                let plantaoEncontrado = null;
+                let plantaoId = null;
+                
+                snapshot.forEach((childSnapshot) => {
+                    const plantao = childSnapshot.val();
+                    const id = childSnapshot.key;
+                    
+                    // Verificar se é o plantão de 02/03/2025 ou 2025-03-02
+                    if (
+                        (plantao.data === '02/03/2025' || plantao.data === '2025-03-02') ||
+                        (plantao.data === '03/03/2025' || plantao.data === '2025-03-03')
+                    ) {
+                        plantaoEncontrado = plantao;
+                        plantaoId = id;
+                        log(`Plantão encontrado: ID=${id}, Data=${plantao.data}`);
+                    }
+                });
+                
+                if (!plantaoEncontrado) {
+                    log('Plantão específico não encontrado');
+                    return false;
+                }
+                
+                // 3. Atualizar o plantão para 03/03/2025
+                const novaData = '03/03/2025';
+                const plantaoAtualizado = {
+                    ...plantaoEncontrado,
+                    data: novaData
+                };
+                
+                log(`Atualizando plantão de ${plantaoEncontrado.data} para ${novaData}...`);
+                
+                // Atualizar no Firebase
+                const plantaoRef = ref(db, `plantoes/${userId}/registros/${plantaoId}`);
+                await set(plantaoRef, plantaoAtualizado);
+                
+                log('Plantão atualizado no Firebase com sucesso!');
+                
+                // 4. Forçar atualização do localStorage
+                // Primeiro, vamos limpar o cache
+                localStorage.removeItem('proximoPlantao');
+                localStorage.removeItem('plantoes');
+                
+                // Agora, vamos adicionar o plantão atualizado ao localStorage
+                const proximoPlantao = {
+                    id: plantaoId,
+                    ...plantaoAtualizado
+                };
+                
+                localStorage.setItem('proximoPlantao', JSON.stringify(proximoPlantao));
+                log('Cache local atualizado com sucesso!');
+                
+                // 5. Verificar se a atualização foi bem-sucedida
+                const verificacao = await get(plantaoRef);
+                if (verificacao.exists()) {
+                    const plantaoVerificado = verificacao.val();
+                    log(`Verificação: Plantão agora tem data = ${plantaoVerificado.data}`);
+                }
+                
+                log('\nProcesso concluído com sucesso!');
+                log('\nPor favor, recarregue a página controle.html para ver as alterações.');
+                
+                return true;
+            } catch (error) {
+                console.error('Erro ao forçar atualização:', error);
+                log(`Erro ao forçar atualização: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Adicionar evento ao botão
+        document.getElementById('btnAtualizar').addEventListener('click', async () => {
+            // Limpar output
+            if (outputElement) {
+                outputElement.textContent = '';
+            }
+            
+            // Verificar autenticação
+            const user = auth.currentUser;
+            if (user) {
+                log(`Usuário autenticado: ${user.uid}`);
+                await forcarAtualizacao(user.uid);
+            } else {
+                log('Usuário não autenticado. Por favor, faça login primeiro.');
+            }
+        });
+
+        // Verificar autenticação ao carregar a página
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                log(`Página carregada. Usuário autenticado: ${user.uid}`);
+                log('Clique no botão "Forçar Atualização" para iniciar o processo.');
+            } else {
+                log('Usuário não autenticado. Por favor, faça login primeiro.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

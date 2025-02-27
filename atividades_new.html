@@ -153,6 +153,84 @@
             transform: translateY(-2px);
         }
 
+        /* Estilos para a seção de próximos eventos */
+        .next-events {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .next-events h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .event-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .event-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .event-date {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event-day {
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .event-month {
+            font-size: 0.8rem;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .event-time {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
         /* Cores para os cards */
         .stat-card:nth-child(1) {
             border-left-color: #4CAF50;
@@ -218,25 +296,22 @@
                 <div class="stat-value" id="saldoFolgas">0</div>
                 <div class="stat-description">Folgas disponíveis</div>
             </div>
-        </div>
 
-        <!-- Segunda linha de cards -->
-        <div class="stats-grid">
-            <!-- Card de Próximo Dia Presencial -->
-            <div class="stat-card" id="proximoDiaPresencialCard">
+            <!-- Card de Presencial -->
+            <div class="stat-card">
                 <div class="stat-header">
                     <div class="stat-icon presencial-icon">
                         <i class="fas fa-building"></i>
                     </div>
                     <h3 class="stat-title">Próximo Dia Presencial</h3>
                 </div>
-                <div class="stat-value" id="proximoDiaPresencialData">--</div>
-                <div class="stat-description">
-                    <span id="proximoDiaPresencialTipo">Presencial</span> • 
-                    <span id="proximoDiaPresencialStatus">--</span>
-                </div>
+                <div class="stat-value" id="proximoPresencial">--</div>
+                <div class="stat-description">Data do próximo dia presencial</div>
             </div>
+        </div>
 
+        <!-- Segunda linha de cards -->
+        <div class="stats-grid">
             <!-- Card de Próximo Plantão -->
             <div class="stat-card" id="proximoPlantaoCard">
                 <div class="stat-header">
@@ -270,5 +345,30 @@
     </div>
 
     <script type="module" src="atividades.js"></script>
+    <script>
+        // Script de depuração para verificar se os elementos existem
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Verificando elementos HTML:');
+            const elementos = [
+                'saldoFerias', 
+                'totalPlantoes', 
+                'saldoFolgas', 
+                'proximoPresencial',
+                'proximoPlantaoCard',
+                'proximoPlantaoData',
+                'proximoPlantaoTipo',
+                'proximoPlantaoStatus',
+                'proximaFolgaCard',
+                'proximaFolgaData',
+                'proximaFolgaTipo',
+                'proximaFolgaStatus'
+            ];
+            
+            elementos.forEach(id => {
+                const elemento = document.getElementById(id);
+                console.log(`Elemento #${id}: ${elemento ? 'Encontrado' : 'NÃO ENCONTRADO'}`);
+            });
+        });
+    </script>
 </body>
 </html>

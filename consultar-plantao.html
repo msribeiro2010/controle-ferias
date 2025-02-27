@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar e Atualizar Plantão</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1976d2;
+        }
+        .card {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #1565c0;
+        }
+        #output {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Consultar e Atualizar Plantão</h1>
+        
+        <div class="card">
+            <h2>Instruções</h2>
+            <p>Esta página permite consultar e atualizar a data de um plantão no banco de dados Firebase.</p>
+            <p>O script irá:</p>
+            <ol>
+                <li>Listar todos os plantões do usuário autenticado</li>
+                <li>Solicitar o ID do plantão que deseja atualizar</li>
+                <li>Atualizar a data do plantão para 03/03/2025</li>
+                <li>Listar novamente os plantões para confirmar a atualização</li>
+            </ol>
+            <p>Abra o console do navegador (F12) para ver os resultados.</p>
+        </div>
+        
+        <div class="card">
+            <h2>Ações</h2>
+            <button id="btnAtualizar" class="btn">Atualizar Plantão para 03/03/2025</button>
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <script type="module" src="consultar-plantao.js"></script>
+</body>
+</html>
