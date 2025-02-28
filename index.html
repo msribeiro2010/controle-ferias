@@ -22,7 +22,7 @@
     <!-- Firebase SDK (Modular) -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
         import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
         // Firebase configuration
@@ -38,171 +38,60 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const database = getDatabase(app);
-        const dbRef = ref(database);
+        const auth = getAuth();
+        const database = getDatabase();
+        
+        // Tornar funções do Firebase disponíveis globalmente
+        window.auth = auth;
+        window.database = database;
+        window.ref = ref;
+        window.set = set;
+        window.get = get;
+        window.child = child;
+        window.sendPasswordResetEmail = sendPasswordResetEmail;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    </script>
 
-        // Login Form
-        const loginForm = document.getElementById('loginForm');
-        const loginMensagem = document.getElementById('login-mensagem');
-        const loadingOverlay = document.querySelector('.loading-overlay');
+    <script>
+        // Funções de recuperação de senha no escopo global
+        function showResetPassword() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('reset-password-container').style.display = 'block';
+        }
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const senha = document.getElementById('loginSenha').value;
+        function showLogin() {
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('reset-password-container').style.display = 'none';
+        }
 
-            // Mostrar loading
-            loadingOverlay.style.display = 'flex';
-            loginMensagem.textContent = 'Realizando login...';
-            loginMensagem.className = '';
-
-            try {
-                // Buscar email do usuário pelo username
-                const usersRef = ref(database, 'users');
-                const usersSnapshot = await get(usersRef);
-                
-                let userEmail = null;
-                let userData = null;
-                
-                usersSnapshot.forEach((childSnapshot) => {
-                    const user = childSnapshot.val();
-                    if (user.username === username) {
-                        userEmail = user.email;
-                        userData = user;
-                        return true; // Break the forEach loop
-                    }
-                });
-
-                if (!userEmail) {
-                    throw new Error('Usuário não encontrado');
-                }
-
-                // Adicionar timeout de 15 segundos
-                const loginPromise = signInWithEmailAndPassword(auth, userEmail, senha);
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout: O login demorou muito tempo')), 15000)
-                );
-
-                const userCredential = await Promise.race([loginPromise, timeoutPromise]);
-                const user = userCredential.user;
-
-                // Salvar dados do usuário no localStorage
-                localStorage.setItem('usuarioLogado', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    nome: userData.nome,
-                    username: userData.username,
-                    totalFerias: userData.totalFerias || 30,
-                    feriasUtilizadas: userData.feriasUtilizadas || 0,
-                    historicoFerias: userData.historicoFerias || []
-                }));
-
-                // Redirecionar para controle.html
-                window.location.href = 'controle.html';
-            } catch (error) {
-                console.error('Erro de login:', error);
-                
-                // Tratar mensagens de erro específicas
-                let mensagemErro = 'Erro ao fazer login. Tente novamente.';
-                
-                if (error.message === 'Timeout: O login demorou muito tempo') {
-                    mensagemErro = 'O login está demorando muito. Por favor, tente novamente.';
-                } else if (error.message === 'Usuário não encontrado') {
-                    mensagemErro = 'Usuário não encontrado.';
-                } else if (error.code === 'auth/wrong-password') {
-                    mensagemErro = 'Senha incorreta.';
-                } else if (error.code === 'auth/user-not-found') {
-                    mensagemErro = 'Usuário não encontrado.';
-                } else if (error.code === 'auth/too-many-requests') {
-                    mensagemErro = 'Muitas tentativas de login. Tente novamente mais tarde.';
-                }
-
-                loginMensagem.textContent = mensagemErro;
-                loginMensagem.className = 'error-message';
-                
-                // Esconder loading
-                loadingOverlay.style.display = 'none';
-            }
-        });
-
-        // Registro Form
-        const registroForm = document.getElementById('registroForm');
-        const registroMensagem = document.getElementById('registro-mensagem');
-
-        registroForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nome = document.getElementById('registroNome').value;
-            const username = document.getElementById('registroUsername').value;
-            const email = document.getElementById('registroEmail').value;
-            const senha = document.getElementById('registroSenha').value;
-            const confirmarSenha = document.getElementById('confirmarSenha').value;
-
-            if (senha !== confirmarSenha) {
-                registroMensagem.textContent = 'Senhas não conferem';
-                registroMensagem.style.color = 'red';
+        function resetPassword() {
+            const email = document.getElementById('resetEmail').value;
+            
+            if (!email) {
+                alert('Por favor, digite seu email.');
                 return;
             }
 
-            try {
-                // Verificar se o username já existe
-                const snapshot = await get(child(dbRef, 'users'));
-                const users = snapshot.val();
-                
-                const usernameExists = Object.values(users || {}).some(
-                    userData => userData.username === username
-                );
-
-                if (usernameExists) {
-                    registroMensagem.textContent = 'Nome de usuário já existe';
-                    registroMensagem.style.color = 'red';
-                    return;
-                }
-
-                const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-                const user = userCredential.user;
-
-                // Salvar dados adicionais do usuário no Realtime Database
-                await set(ref(database, 'users/' + user.uid), {
-                    nome: nome,
-                    username: username,
-                    email: email,
-                    totalFerias: 30,
-                    feriasUtilizadas: 0,
-                    historicoFerias: []
+            window.sendPasswordResetEmail(window.auth, email)
+                .then(() => {
+                    alert('Email de recuperação de senha enviado! Verifique sua caixa de entrada.');
+                    showLogin();
+                })
+                .catch((error) => {
+                    console.error('Erro ao enviar email de recuperação:', error);
+                    if (error.code === 'auth/user-not-found') {
+                        alert('Email não encontrado. Verifique se digitou corretamente.');
+                    } else {
+                        alert('Erro ao enviar email de recuperação. Por favor, tente novamente.');
+                    }
                 });
+        }
 
-                registroMensagem.textContent = 'Registro realizado com sucesso!';
-                registroMensagem.style.color = 'green';
-
-                // Limpar formulário
-                registroForm.reset();
-            } catch (error) {
-                registroMensagem.textContent = 'Erro ao registrar: ' + error.message;
-                registroMensagem.style.color = 'red';
-                console.error('Erro de registro:', error);
-            }
-        });
-
-        // Toggle between login and registro
-        const loginToggle = document.getElementById('loginToggle');
-        const registroToggle = document.getElementById('registroToggle');
-        const loginContainer = document.getElementById('login-container');
-        const registroContainer = document.getElementById('registro-container');
-
-        loginToggle.addEventListener('click', () => {
-            loginContainer.style.display = 'block';
-            registroContainer.style.display = 'none';
-            loginToggle.classList.add('active');
-            registroToggle.classList.remove('active');
-        });
-
-        registroToggle.addEventListener('click', () => {
-            loginContainer.style.display = 'none';
-            registroContainer.style.display = 'block';
-            loginToggle.classList.remove('active');
-            registroToggle.classList.add('active');
-        });
+        // Garantir que as funções estejam disponíveis globalmente
+        window.showResetPassword = showResetPassword;
+        window.showLogin = showLogin;
+        window.resetPassword = resetPassword;
     </script>
     
     <style>
@@ -526,6 +415,44 @@
             color: white;
             border: none;
         }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .forgot-password a {
+            color: #1565C0;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .reset-password-form {
+            display: none;
+        }
+
+        .reset-password-form.active {
+            display: block;
+        }
+
+        .login-form.hidden {
+            display: none;
+        }
+
+        .back-to-login {
+            color: #666;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .back-to-login:hover {
+            color: #1565C0;
+        }
     </style>
 </head>
 <body>
@@ -553,7 +480,7 @@
             </div>
 
             <div id="login-container">
-                <form id="loginForm">
+                <form id="loginForm" class="login-form">
                     <div class="form-group">
                         <label for="loginUsername">Nome de Usuário</label>
                         <i class="fas fa-user"></i>
@@ -568,7 +495,31 @@
                     <button type="submit" class="btn-login">
                         <i class="fas fa-sign-in-alt"></i> Entrar
                     </button>
+                    <div class="forgot-password">
+                        <a href="#" onclick="showResetPassword(); return false;">Esqueceu a senha?</a>
+                    </div>
                 </form>
+
+                <div id="reset-password-container" style="display: none;">
+                    <div class="login-box">
+                        <h2>Recuperar Senha</h2>
+                        <form id="resetPasswordForm" onsubmit="resetPassword(); return false;">
+                            <div class="form-group">
+                                <label for="resetEmail">Email</label>
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="resetEmail" required placeholder="Digite seu email">
+                            </div>
+                            <button type="submit" class="btn-login">
+                                <i class="fas fa-paper-plane"></i> Enviar Email de Recuperação
+                            </button>
+                            <div class="back-to-login">
+                                <a href="#" onclick="showLogin(); return false;">
+                                    <i class="fas fa-arrow-left"></i> Voltar para o login
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <div id="registro-container" style="display: none;">
@@ -606,5 +557,158 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Login Form
+        const loginForm = document.getElementById('loginForm');
+        const loginMensagem = document.getElementById('login-mensagem');
+        const loadingOverlay = document.querySelector('.loading-overlay');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            // Mostrar loading
+            loadingOverlay.style.display = 'flex';
+            loginMensagem.textContent = 'Realizando login...';
+            loginMensagem.className = '';
+
+            try {
+                // Buscar email do usuário pelo username
+                const usersRef = window.ref(window.database, 'users');
+                const usersSnapshot = await window.get(usersRef);
+                
+                let userEmail = null;
+                let userData = null;
+                
+                usersSnapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    if (user.username === username) {
+                        userEmail = user.email;
+                        userData = user;
+                        return true;
+                    }
+                });
+
+                if (!userEmail) {
+                    throw new Error('Usuário não encontrado');
+                }
+
+                // Login com email e senha
+                const userCredential = await window.signInWithEmailAndPassword(window.auth, userEmail, senha);
+                const user = userCredential.user;
+
+                // Salvar dados do usuário
+                localStorage.setItem('usuarioLogado', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    nome: userData.nome,
+                    username: userData.username,
+                    totalFerias: userData.totalFerias || 30,
+                    feriasUtilizadas: userData.feriasUtilizadas || 0,
+                    historicoFerias: userData.historicoFerias || []
+                }));
+
+                // Redirecionar
+                window.location.href = 'controle.html';
+            } catch (error) {
+                console.error('Erro de login:', error);
+                let mensagemErro = 'Erro ao fazer login. Tente novamente.';
+                
+                if (error.message === 'Usuário não encontrado') {
+                    mensagemErro = 'Usuário não encontrado.';
+                } else if (error.code === 'auth/wrong-password') {
+                    mensagemErro = 'Senha incorreta.';
+                } else if (error.code === 'auth/user-not-found') {
+                    mensagemErro = 'Usuário não encontrado.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    mensagemErro = 'Muitas tentativas de login. Tente novamente mais tarde.';
+                }
+
+                loginMensagem.textContent = mensagemErro;
+                loginMensagem.className = 'error-message';
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // Registro Form
+        const registroForm = document.getElementById('registroForm');
+        const registroMensagem = document.getElementById('registro-mensagem');
+
+        registroForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('registroNome').value;
+            const username = document.getElementById('registroUsername').value;
+            const email = document.getElementById('registroEmail').value;
+            const senha = document.getElementById('registroSenha').value;
+            const confirmarSenha = document.getElementById('confirmarSenha').value;
+
+            if (senha !== confirmarSenha) {
+                registroMensagem.textContent = 'Senhas não conferem';
+                registroMensagem.style.color = 'red';
+                return;
+            }
+
+            try {
+                // Verificar se o username já existe
+                const snapshot = await window.get(window.ref(window.database, 'users'));
+                const users = snapshot.val();
+                
+                const usernameExists = Object.values(users || {}).some(
+                    userData => userData.username === username
+                );
+
+                if (usernameExists) {
+                    registroMensagem.textContent = 'Nome de usuário já existe';
+                    registroMensagem.style.color = 'red';
+                    return;
+                }
+
+                const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
+                const user = userCredential.user;
+
+                // Salvar dados adicionais do usuário no Realtime Database
+                await window.set(window.ref(window.database, 'users/' + user.uid), {
+                    nome: nome,
+                    username: username,
+                    email: email,
+                    totalFerias: 30,
+                    feriasUtilizadas: 0,
+                    historicoFerias: []
+                });
+
+                registroMensagem.textContent = 'Registro realizado com sucesso!';
+                registroMensagem.style.color = 'green';
+
+                // Limpar formulário
+                registroForm.reset();
+            } catch (error) {
+                registroMensagem.textContent = 'Erro ao registrar: ' + error.message;
+                registroMensagem.style.color = 'red';
+                console.error('Erro de registro:', error);
+            }
+        });
+
+        // Toggle between login and registro
+        const loginToggle = document.getElementById('loginToggle');
+        const registroToggle = document.getElementById('registroToggle');
+        const loginContainer = document.getElementById('login-container');
+        const registroContainer = document.getElementById('registro-container');
+
+        loginToggle.addEventListener('click', () => {
+            loginContainer.style.display = 'block';
+            registroContainer.style.display = 'none';
+            loginToggle.classList.add('active');
+            registroToggle.classList.remove('active');
+        });
+
+        registroToggle.addEventListener('click', () => {
+            loginContainer.style.display = 'none';
+            registroContainer.style.display = 'block';
+            loginToggle.classList.remove('active');
+            registroToggle.classList.add('active');
+        });
+    </script>
 </body>
 </html>
