@@ -16,6 +16,29 @@
             --card-color: #FFFFFF;
             --text-primary: #2C3E50;
             --text-secondary: #606F7B;
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: #fff;
+            --navbar-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --shadow-color: rgba(0,0,0,0.1);
+            --hover-bg: rgba(0,0,0,0.05);
+            --border-color: #dee2e6;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #2196F3;
+            --secondary-color: #1976D2;
+            --background-color: #1a1a1a;
+            --card-color: #2d2d2d;
+            --text-primary: #e0e0e0;
+            --text-secondary: #9e9e9e;
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --navbar-bg: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            --shadow-color: rgba(0,0,0,0.3);
+            --hover-bg: rgba(255,255,255,0.05);
+            --border-color: #404040;
         }
 
         body {
@@ -24,12 +47,15 @@
             flex-direction: column;
             background-color: var(--background-color);
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .navbar {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 10px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--navbar-bg);
+            padding: 6px;
+            box-shadow: 0 2px 4px var(--shadow-color);
         }
 
         .navbar-content {
@@ -52,7 +78,7 @@
         .navbar-brand-container {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 6px;
         }
 
         .navbar-brand-image {
@@ -68,7 +94,7 @@
         }
 
         .navbar-brand-image img {
-            height: 45px;
+            max-height: 35px;
             width: auto;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
@@ -95,7 +121,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px 20px;
+            padding: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             margin-right: 20px;
@@ -124,44 +150,43 @@
         }
 
         .logout-button {
-            margin-left: 20px;
-        }
-
-        .btn-logout {
-            background: none;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 0.5rem 1.25rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .btn-logout:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.5);
+        .logout-button i {
+            font-size: 1em;
+            transition: transform 0.2s ease;
+        }
+
+        .logout-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
 
+        .logout-button:hover i {
+            transform: translateX(2px);
+        }
+
+        .logout-button:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         @media (max-width: 768px) {
-            .navbar-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .navbar-brand {
-                margin-bottom: 0.5rem;
-            }
-
-            .datetime-header {
-                margin: 0.5rem 0;
-            }
-
             .logout-button {
-                margin: 0.5rem 0;
+                padding: 5px 10px;
+                font-size: 0.85em;
             }
         }
 
@@ -190,11 +215,14 @@
 
         .welcome-section {
             text-align: center;
-            margin-bottom: 2rem;
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 6px auto;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            max-width: 1200px;
+            width: calc(100% - 16px);
+            box-sizing: border-box;
         }
 
         .welcome-section .brasao {
@@ -213,14 +241,14 @@
 
         .welcome-section .greeting {
             font-size: 1.4rem;
-            color: #2c3e50;
+            color: var(--text-primary);
             margin-bottom: 0.2rem;
         }
 
         .welcome-section .user-name {
             font-family: 'Dancing Script', cursive;
             font-size: 1.8rem;
-            color: #1e3c72;
+            color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 0.8rem;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
@@ -228,7 +256,7 @@
 
         .welcome-section .description {
             font-size: 0.95rem;
-            color: #7f8c8d;
+            color: var(--text-secondary);
             max-width: 600px;
             margin: 0 auto;
         }
@@ -479,15 +507,6 @@
             margin-bottom: 2rem;
         }
 
-        .feriados-mes h2 {
-            color: var(--primary-color);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
         .feriado-item {
             display: flex;
             align-items: center;
@@ -688,45 +707,50 @@
         /* Estilo moderno para os alertas */
         .alerts-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px;
+            max-width: 1200px;
+            margin: 8px auto;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            width: calc(100% - 16px);
+            box-sizing: border-box;
         }
 
         .alerta-plantao {
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: none;
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .alerta-plantao:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .alerta-titulo {
             display: flex;
             align-items: center;
-            font-size: 1.2em;
+            font-size: 0.95em;
             font-weight: bold;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            letter-spacing: 0.3px;
         }
 
         .alerta-titulo i {
-            margin-right: 10px;
-            font-size: 1.3em;
+            margin-right: 6px;
+            font-size: 1.1em;
         }
 
         .alerta-conteudo {
-            font-size: 1.1em;
-            line-height: 1.5;
-            letter-spacing: 0.3px;
+            font-size: 0.9em;
+            line-height: 1.2;
+            letter-spacing: 0.2px;
         }
 
         /* Estilo específico para alerta de plantão */
@@ -916,7 +940,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #607D8B;
+            color: var(--text-secondary);
         }
 
         .feriado-tipo i {
@@ -1081,6 +1105,360 @@
         .alerta-plantao.aniversario .alerta-titulo i {
             color: #ff6b6b;
         }
+
+        /* Media queries para dispositivos móveis */
+        @media (max-width: 768px) {
+            .welcome-section {
+                padding: 15px;
+                margin: 10px;
+            }
+
+            .welcome-section h2 {
+                font-size: 1.4em;
+            }
+
+            .alerts-container {
+                padding: 15px;
+                margin: 10px;
+                grid-template-columns: 1fr;
+            }
+
+            .alerta-plantao {
+                margin-bottom: 12px;
+                padding: 12px;
+            }
+
+            .alerta-titulo {
+                font-size: 1em;
+            }
+
+            .alerta-conteudo {
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-section {
+                padding: 12px;
+                margin: 8px;
+            }
+
+            .welcome-section h2 {
+                font-size: 1.2em;
+            }
+
+            .alerts-container {
+                padding: 12px;
+                margin: 8px;
+            }
+
+            .alerta-plantao {
+                margin-bottom: 10px;
+                padding: 10px;
+            }
+
+            .navbar-left {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 10px;
+            }
+
+            .navbar-brand {
+                margin-bottom: 10px;
+            }
+
+            .navbar-brand img {
+                max-width: 40px;
+            }
+
+            .navbar-brand-text span {
+                font-size: 0.9em;
+            }
+        }
+
+        .welcome-section h1 span {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-feriados {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-feriados:hover {
+            background-color: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-feriados, .btn-logout {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .feriados-container {
+            padding: 1rem;
+        }
+
+        .feriados-mes {
+            margin-bottom: 2rem;
+        }
+
+        .feriado-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            gap: 1.5rem;
+        }
+
+        .feriado-data {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .feriado-data-dia-semana {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+
+        .feriado-data-dia {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .feriado-data-mes {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .feriado-info {
+            flex: 1;
+        }
+
+        .feriado-nome {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .feriado-tipo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .feriado-passado {
+            opacity: 0.7;
+            background: #ffebee !important;
+        }
+
+        .feriado-passado .feriado-data-dia,
+        .feriado-passado .feriado-data-mes,
+        .feriado-passado .feriado-data-dia-semana {
+            color: #757575;
+        }
+
+        .feriado-passado .feriado-nome {
+            color: #757575;
+        }
+
+        .feriado-passado .feriado-tipo {
+            color: #9e9e9e;
+        }
+
+        .feriado-passado .feriado-tipo i {
+            color: #9e9e9e;
+        }
+
+        /* Layout base responsivo */
+        .welcome-section {
+            text-align: center;
+            margin: 15px auto;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            max-width: 1200px;
+            width: calc(100% - 30px);
+            box-sizing: border-box;
+        }
+
+        .alerts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 15px auto;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            width: calc(100% - 30px);
+            box-sizing: border-box;
+        }
+
+        .navbar {
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .navbar-brand img {
+            max-height: 50px;
+            width: auto;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Estilo do container do relógio */
+        .clock-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .clock {
+            font-size: 1em;
+            font-weight: 500;
+            color: white;
+        }
+
+        .date-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95em;
+        }
+
+        .date-info > * {
+            position: relative;
+        }
+
+        .date-info > *:not(:last-child)::after {
+            content: '•';
+            position: absolute;
+            right: -6px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .clock-container {
+                padding: 4px 8px;
+            }
+
+            .date-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+            }
+
+            .date-info > *:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        /* Botão de alternar tema */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle i {
+            font-size: 1em;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-moon {
+            display: none;
+        }
+
+        [data-theme="dark"] .theme-toggle .fa-sun {
+            display: inline-block;
+        }
+
+        .theme-toggle .fa-sun {
+            display: none;
+        }
+
+        .theme-toggle .fa-moon {
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .theme-toggle {
+                padding: 5px 10px;
+                font-size: 0.85em;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1093,19 +1471,27 @@
                             <img src="brasaooficialcolorido.png" alt="Brasão">
                         </a>
                         <a href="controle.html" class="navbar-brand-text">
-                            <span>Tribunal Regional da 15a. Região</span>
+                            <span>TRT15 - Núcleo de Apoio ao PJe</span>
                         </a>
                     </div>
                 </div>
 
                 <div class="navbar-right">
-                    <div class="datetime-header">
-                        <div class="time" id="headerTime"></div>
-                        <div class="date" id="headerDate"></div>
+                    <div class="clock-container">
+                        <div class="date-info">
+                            <div class="clock" id="clock"></div>
+                            <span class="weekday" id="weekday"></span>
+                            <span id="current-date"></span>
+                        </div>
                     </div>
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                        <i class="fas fa-sun"></i>
+                        <span>Tema</span>
+                    </button>
                     <button class="logout-button" onclick="logout()">
+                        <span>Sair</span>
                         <i class="fas fa-sign-out-alt"></i>
-                        Sair
                     </button>
                 </div>
             </div>
@@ -2803,19 +3189,38 @@
                 const agora = new Date();
                 
                 // Atualizar hora
-                document.getElementById('headerTime').textContent = 
+                document.getElementById('clock').textContent = 
                     agora.toLocaleTimeString('pt-BR', { 
                         hour: '2-digit', 
-                        minute: '2-digit' 
+                        minute: '2-digit',
+                        second: '2-digit'
                     });
+
+                // Atualizar dia da semana
+                document.getElementById('weekday').textContent = 
+                    agora.toLocaleDateString('pt-BR', { 
+                        weekday: 'long'
+                    }).charAt(0).toUpperCase() + 
+                    agora.toLocaleDateString('pt-BR', { 
+                        weekday: 'long'
+                    }).slice(1);
                 
                 // Atualizar data
-                document.getElementById('headerDate').textContent = 
+                document.getElementById('current-date').textContent = 
                     agora.toLocaleDateString('pt-BR', { 
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long'
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
                     });
+
+                // Atualizar dia da semana
+                document.getElementById('weekday').textContent = 
+                    agora.toLocaleDateString('pt-BR', { 
+                        weekday: 'long'
+                    }).charAt(0).toUpperCase() + 
+                    agora.toLocaleDateString('pt-BR', { 
+                        weekday: 'long'
+                    }).slice(1);
             };
 
             // Atualizar imediatamente e depois a cada segundo
@@ -2902,6 +3307,24 @@
         // Garantir que a função seja chamada após o carregamento completo
         window.addEventListener('load', verificarAniversariantesMes);
         document.addEventListener('DOMContentLoaded', verificarAniversariantesMes);
+    </script>
+
+    <script>
+        // Função para alternar o tema
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Carregar tema salvo
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+        });
     </script>
 </body>
 </html>
