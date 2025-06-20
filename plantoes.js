@@ -288,12 +288,15 @@ function carregarPlantoes() {
                 const plantao = childSnapshot.val();
                 const id = childSnapshot.key;
                 
-                const dataPlantao = new Date(plantao.data + 'T00:00:00');
-                const dataKey = dataPlantao.toISOString().split('T')[0];
+                // Tratar a data como UTC para evitar problemas de fuso horário
+                const [year, month, day] = plantao.data.split('-').map(Number);
+                const dataPlantao = new Date(Date.UTC(year, month - 1, day));
+                
+                const dataKey = plantao.data; // Usar a string YYYY-MM-DD como chave
                 
                 if (!plantoes.has(dataKey)) {
-                    const dataFormatada = dataPlantao.toLocaleDateString('pt-BR');
-                    const diaSemana = dataPlantao.toLocaleDateString('pt-BR', { weekday: 'long' });
+                    const dataFormatada = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(dataPlantao);
+                    const diaSemana = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', timeZone: 'UTC' }).format(dataPlantao);
                     
                     const status = calcularStatus(plantao.data);
                     if (status === 'Realizado') {
@@ -302,7 +305,7 @@ function carregarPlantoes() {
                     
                     plantoes.set(dataKey, {
                         id,
-                        data: dataPlantao,
+                        data: dataPlantao, // Armazenar como objeto Date UTC
                         dataFormatada,
                         diaSemana: diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1),
                         tipo: plantao.tipo || 'PLANTAO',
@@ -313,10 +316,32 @@ function carregarPlantoes() {
             });
             
             const plantoesArray = Array.from(plantoes.values());
-            plantoesArray.sort((a, b) => b.data - a.data);
+            
+            // Obter a data de hoje em UTC para uma comparação precisa
+            const agora = new Date();
+            const hojeUTC = new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth(), agora.getUTCDate()));
+
+            const plantoesFuturos = [];
+            const plantoesPassados = [];
+
+            plantoesArray.forEach(plantao => {
+                if (plantao.data >= hojeUTC) {
+                    plantoesFuturos.push(plantao);
+                } else {
+                    plantoesPassados.push(plantao);
+                }
+            });
+
+            // Ordenar futuros do mais próximo para o mais distante (crescente)
+            plantoesFuturos.sort((a, b) => a.data.getTime() - b.data.getTime());
+
+            // Ordenar passados do mais recente para o mais antigo (decrescente)
+            plantoesPassados.sort((a, b) => b.data.getTime() - a.data.getTime());
+
+            const plantoesOrdenados = [...plantoesFuturos, ...plantoesPassados];
             
             // Renderizar plantões
-            plantoesArray.forEach(plantao => {
+            plantoesOrdenados.forEach(plantao => {
                 const row = document.createElement('tr');
                 row.setAttribute('data-plantao-id', plantao.id);
                 if (plantao.status === 'Realizado') {

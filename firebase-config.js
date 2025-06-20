@@ -2,17 +2,10 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
+import { config } from './config.js';
 
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
-    authDomain: "controle-func.firebaseapp.com",
-    databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
-    projectId: "controle-func",
-    storageBucket: "controle-func.firebasestorage.app",
-    messagingSenderId: "146164640694",
-    appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
-};
+// Firebase configuration - usando variáveis de ambiente
+const firebaseConfig = config.firebase;
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

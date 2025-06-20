@@ -2,20 +2,29 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid && auth != null",
+        ".write": "$uid === auth.uid && auth != null",
+        ".validate": "newData.hasChildren(['nome', 'email']) && newData.child('email').isString() && newData.child('nome').isString()"
       }
     },
     "ferias": {
       "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid && auth != null",
+        ".write": "$uid === auth.uid && auth != null",
+        ".validate": "newData.hasChildren(['dataInicio', 'dataFim']) && newData.child('dataInicio').isString() && newData.child('dataFim').isString()"
       }
     },
     "plantoes": {
       "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid && auth != null",
+        ".write": "$uid === auth.uid && auth != null",
+        ".validate": "newData.hasChildren(['data', 'turno']) && newData.child('data').isString() && newData.child('turno').isString()"
+      }
+    },
+    "logs": {
+      "$uid": {
+        ".read": false,
+        ".write": "$uid === auth.uid && auth != null"
       }
     }
   }

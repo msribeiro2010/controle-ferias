@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Configuração</title>
+</head>
+<body>
+    <h1>Teste de Configuração Firebase</h1>
+    <div id="config-result"></div>
+    
+    <script type="module">
+        import { config } from './config.js';
+        import { app, auth, database } from './firebase-config.js';
+        
+        const resultDiv = document.getElementById('config-result');
+        
+        try {
+            resultDiv.innerHTML = `
+                <h2>✅ Configuração Carregada com Sucesso!</h2>
+                <p><strong>Projeto:</strong> ${config.firebase.projectId}</p>
+                <p><strong>Ambiente:</strong> ${config.environment}</p>
+                <p><strong>Firebase App:</strong> ${app ? 'Inicializado' : 'Falhou'}</p>
+                <p><strong>Auth:</strong> ${auth ? 'Configurado' : 'Falhou'}</p>
+                <p><strong>Database:</strong> ${database ? 'Conectado' : 'Falhou'}</p>
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = `
+                <h2>❌ Erro na Configuração</h2>
+                <p>${error.message}</p>
+            `;
+        }
+    </script>
+</body>
+</html>

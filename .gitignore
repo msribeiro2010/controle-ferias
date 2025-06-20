@@ -1,0 +1,29 @@
+# Variáveis de ambiente
+.env
+.env.local
+.env.production
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependências
+node_modules/
+.npm
+
+# Cache
+.cache/
+.vscode/
+.DS_Store
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc

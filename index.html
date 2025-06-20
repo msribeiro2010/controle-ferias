@@ -6,6 +6,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Controle de Férias - NAPJe</title>
     
+    <!-- Security Headers (CSP desabilitado temporariamente para teste) -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
     <!-- Favicon com fallback -->
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
@@ -18,81 +22,8 @@
     
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- Firebase SDK (Modular) -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
-        import { getDatabase, ref, set, get, child } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js';
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAnPLwZO5i_Ky0nBfI14gzNsRqvVMIOqdk",
-            authDomain: "controle-func.firebaseapp.com",
-            databaseURL: "https://controle-func-default-rtdb.firebaseio.com",
-            projectId: "controle-func",
-            storageBucket: "controle-func.firebasestorage.app",
-            messagingSenderId: "146164640694",
-            appId: "1:146164640694:web:d52beaeaa4b1b38cc76f17"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const database = getDatabase();
-        
-        // Tornar funções do Firebase disponíveis globalmente
-        window.auth = auth;
-        window.database = database;
-        window.ref = ref;
-        window.set = set;
-        window.get = get;
-        window.child = child;
-        window.sendPasswordResetEmail = sendPasswordResetEmail;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-    </script>
-
-    <script>
-        // Funções de recuperação de senha no escopo global
-        function showResetPassword() {
-            document.getElementById('login-container').style.display = 'none';
-            document.getElementById('reset-password-container').style.display = 'block';
-        }
-
-        function showLogin() {
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('reset-password-container').style.display = 'none';
-        }
-
-        function resetPassword() {
-            const email = document.getElementById('resetEmail').value;
-            
-            if (!email) {
-                alert('Por favor, digite seu email.');
-                return;
-            }
-
-            window.sendPasswordResetEmail(window.auth, email)
-                .then(() => {
-                    alert('Email de recuperação de senha enviado! Verifique sua caixa de entrada.');
-                    showLogin();
-                })
-                .catch((error) => {
-                    console.error('Erro ao enviar email de recuperação:', error);
-                    if (error.code === 'auth/user-not-found') {
-                        alert('Email não encontrado. Verifique se digitou corretamente.');
-                    } else {
-                        alert('Erro ao enviar email de recuperação. Por favor, tente novamente.');
-                    }
-                });
-        }
-
-        // Garantir que as funções estejam disponíveis globalmente
-        window.showResetPassword = showResetPassword;
-        window.showLogin = showLogin;
-        window.resetPassword = resetPassword;
-    </script>
+    <script src="./js/theme.js"></script>
     
     <style>
         body {
@@ -459,260 +390,88 @@
     <link rel="stylesheet" href="css/theme.css">
 </head>
 <body>
-    <!-- Loading Overlay -->
-    <div class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Realizando login...</div>
+    <div class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
     </div>
-
-    <div class="login-container">
+    <div id="login-container" class="login-container">
         <div class="login-wrapper">
             <div class="login-header">
-                <img src="brasaooficialcolorido.png" alt="Brasão" style="width: 150px; height: auto; margin-bottom: 20px;">
-                <h2>Sistema de Controle</h2>
-                <p>Férias, Plantões e Trabalho</p>
+                <img src="brasaooficialcolorido.png" alt="Logo NAPJe">
+                <h2>Controle de Férias</h2>
+                <p>Acesso ao sistema</p>
             </div>
-
+            
             <div class="login-toggle">
-                <button id="loginToggle" class="active">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <button id="registroToggle">
-                    <i class="fas fa-user-plus"></i> Registrar
-                </button>
+                <button id="loginToggle" class="active"><i class="fas fa-sign-in-alt"></i> Login</button>
+                <button id="registroToggle"><i class="fas fa-user-plus"></i> Registro</button>
             </div>
 
-            <div id="login-container">
-                <form id="loginForm" class="login-form">
-                    <div class="form-group">
-                        <label for="loginUsername">Nome de Usuário</label>
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="loginUsername" required placeholder="Digite seu usuário">
-                    </div>
-                    <div class="form-group">
-                        <label for="loginSenha">Senha</label>
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="loginSenha" required placeholder="Digite sua senha">
-                    </div>
-                    <div id="login-mensagem" class="mensagem"></div>
-                    <button type="submit" class="btn-login">
-                        <i class="fas fa-sign-in-alt"></i> Entrar
-                    </button>
-                    <div class="forgot-password">
-                        <a href="#" onclick="showResetPassword(); return false;">Esqueceu a senha?</a>
-                    </div>
-                </form>
-
-                <div id="reset-password-container" style="display: none;">
-                    <div class="login-box">
-                        <h2>Recuperar Senha</h2>
-                        <form id="resetPasswordForm" onsubmit="resetPassword(); return false;">
-                            <div class="form-group">
-                                <label for="resetEmail">Email</label>
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" id="resetEmail" required placeholder="Digite seu email">
-                            </div>
-                            <button type="submit" class="btn-login">
-                                <i class="fas fa-paper-plane"></i> Enviar Email de Recuperação
-                            </button>
-                            <div class="back-to-login">
-                                <a href="#" onclick="showLogin(); return false;">
-                                    <i class="fas fa-arrow-left"></i> Voltar para o login
-                                </a>
-                            </div>
-                        </form>
-                    </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="seu-email@dominio.com" required>
                 </div>
-            </div>
-
-            <div id="registro-container" style="display: none;">
-                <form id="registroForm">
-                    <div class="form-group">
-                        <label for="registroNome">Nome Completo</label>
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="registroNome" required placeholder="Digite seu nome completo">
-                    </div>
-                    <div class="form-group">
-                        <label for="registroUsername">Nome de Usuário</label>
-                        <i class="fas fa-user-tag"></i>
-                        <input type="text" id="registroUsername" required placeholder="Escolha um nome de usuário">
-                    </div>
-                    <div class="form-group">
-                        <label for="registroEmail">Email</label>
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="registroEmail" required placeholder="Digite seu email">
-                    </div>
-                    <div class="form-group">
-                        <label for="registroSenha">Senha</label>
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="registroSenha" required placeholder="Crie uma senha">
-                    </div>
-                    <div class="form-group">
-                        <label for="confirmarSenha">Confirmar Senha</label>
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmarSenha" required placeholder="Confirme sua senha">
-                    </div>
-                    <div id="registro-mensagem" class="mensagem"></div>
-                    <button type="submit" class="btn-registro">
-                        <i class="fas fa-user-plus"></i> Criar Conta
-                    </button>
-                </form>
-            </div>
+                <div class="form-group">
+                    <label for="loginSenha">Senha</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginSenha" placeholder="Sua senha" required>
+                </div>
+                <button type="submit" class="btn-login"><i class="fas fa-arrow-right"></i> Entrar</button>
+                <div id="login-mensagem" class="mensagem"></div>
+                <div class="extra-links">
+                    <a href="#" onclick="showResetPassword()">Esqueceu a senha?</a>
+                </div>
+            </form>
+            
+            <form id="registroForm" style="display: none;">
+                <div class="form-group">
+                    <label for="registroNome">Nome Completo</label>
+                     <i class="fas fa-user"></i>
+                    <input type="text" id="registroNome" placeholder="Seu nome completo" required>
+                </div>
+                <div class="form-group">
+                    <label for="registroEmail">Email</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="registroEmail" placeholder="seu-email@dominio.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="registroSenha">Senha</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="registroSenha" placeholder="Mínimo 8 caracteres" required>
+                </div>
+                 <div class="form-group">
+                    <label for="confirmarSenha">Confirmar Senha</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirmarSenha" placeholder="Confirme sua senha" required>
+                </div>
+                <button type="submit" class="btn-registro"><i class="fas fa-check"></i> Registrar</button>
+                <div id="registro-mensagem" class="mensagem"></div>
+            </form>
         </div>
     </div>
 
-    <script>
-        // Login Form
-        const loginForm = document.getElementById('loginForm');
-        const loginMensagem = document.getElementById('login-mensagem');
-        const loadingOverlay = document.querySelector('.loading-overlay');
+    <div id="reset-password-container" class="login-container" style="display:none;">
+        <div class="login-wrapper">
+            <div class="login-header">
+                <h2>Recuperar Senha</h2>
+                <p>Insira seu email para receber o link de recuperação</p>
+            </div>
+            <form>
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="resetEmail" required>
+                </div>
+                <button type="submit" class="btn-login">Enviar</button>
+                <div class="extra-links">
+                    <a href="#" onclick="showLogin()">Voltar para o Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const senha = document.getElementById('loginSenha').value;
-
-            // Mostrar loading
-            loadingOverlay.style.display = 'flex';
-            loginMensagem.textContent = 'Realizando login...';
-            loginMensagem.className = '';
-
-            try {
-                // Buscar email do usuário pelo username
-                const usersRef = window.ref(window.database, 'users');
-                const usersSnapshot = await window.get(usersRef);
-                
-                let userEmail = null;
-                let userData = null;
-                
-                usersSnapshot.forEach((childSnapshot) => {
-                    const user = childSnapshot.val();
-                    if (user.username === username) {
-                        userEmail = user.email;
-                        userData = user;
-                        return true;
-                    }
-                });
-
-                if (!userEmail) {
-                    throw new Error('Usuário não encontrado');
-                }
-
-                // Login com email e senha
-                const userCredential = await window.signInWithEmailAndPassword(window.auth, userEmail, senha);
-                const user = userCredential.user;
-
-                // Salvar dados do usuário
-                localStorage.setItem('usuarioLogado', JSON.stringify({
-                    uid: user.uid,
-                    email: user.email,
-                    nome: userData.nome,
-                    username: userData.username,
-                    totalFerias: userData.totalFerias || 30,
-                    feriasUtilizadas: userData.feriasUtilizadas || 0,
-                    historicoFerias: userData.historicoFerias || []
-                }));
-
-                // Redirecionar
-                window.location.href = 'controle.html';
-            } catch (error) {
-                console.error('Erro de login:', error);
-                let mensagemErro = 'Erro ao fazer login. Tente novamente.';
-                
-                if (error.message === 'Usuário não encontrado') {
-                    mensagemErro = 'Usuário não encontrado.';
-                } else if (error.code === 'auth/wrong-password') {
-                    mensagemErro = 'Senha incorreta.';
-                } else if (error.code === 'auth/user-not-found') {
-                    mensagemErro = 'Usuário não encontrado.';
-                } else if (error.code === 'auth/too-many-requests') {
-                    mensagemErro = 'Muitas tentativas de login. Tente novamente mais tarde.';
-                }
-
-                loginMensagem.textContent = mensagemErro;
-                loginMensagem.className = 'error-message';
-                loadingOverlay.style.display = 'none';
-            }
-        });
-
-        // Registro Form
-        const registroForm = document.getElementById('registroForm');
-        const registroMensagem = document.getElementById('registro-mensagem');
-
-        registroForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nome = document.getElementById('registroNome').value;
-            const username = document.getElementById('registroUsername').value;
-            const email = document.getElementById('registroEmail').value;
-            const senha = document.getElementById('registroSenha').value;
-            const confirmarSenha = document.getElementById('confirmarSenha').value;
-
-            if (senha !== confirmarSenha) {
-                registroMensagem.textContent = 'Senhas não conferem';
-                registroMensagem.style.color = 'red';
-                return;
-            }
-
-            try {
-                // Verificar se o username já existe
-                const snapshot = await window.get(window.ref(window.database, 'users'));
-                const users = snapshot.val();
-                
-                const usernameExists = Object.values(users || {}).some(
-                    userData => userData.username === username
-                );
-
-                if (usernameExists) {
-                    registroMensagem.textContent = 'Nome de usuário já existe';
-                    registroMensagem.style.color = 'red';
-                    return;
-                }
-
-                const userCredential = await window.createUserWithEmailAndPassword(window.auth, email, senha);
-                const user = userCredential.user;
-
-                // Salvar dados adicionais do usuário no Realtime Database
-                await window.set(window.ref(window.database, 'users/' + user.uid), {
-                    nome: nome,
-                    username: username,
-                    email: email,
-                    totalFerias: 30,
-                    feriasUtilizadas: 0,
-                    historicoFerias: []
-                });
-
-                registroMensagem.textContent = 'Registro realizado com sucesso!';
-                registroMensagem.style.color = 'green';
-
-                // Limpar formulário
-                registroForm.reset();
-            } catch (error) {
-                registroMensagem.textContent = 'Erro ao registrar: ' + error.message;
-                registroMensagem.style.color = 'red';
-                console.error('Erro de registro:', error);
-            }
-        });
-
-        // Toggle between login and registro
-        const loginToggle = document.getElementById('loginToggle');
-        const registroToggle = document.getElementById('registroToggle');
-        const loginContainer = document.getElementById('login-container');
-        const registroContainer = document.getElementById('registro-container');
-
-        loginToggle.addEventListener('click', () => {
-            loginContainer.style.display = 'block';
-            registroContainer.style.display = 'none';
-            loginToggle.classList.add('active');
-            registroToggle.classList.remove('active');
-        });
-
-        registroToggle.addEventListener('click', () => {
-            loginContainer.style.display = 'none';
-            registroContainer.style.display = 'block';
-            loginToggle.classList.remove('active');
-            registroToggle.classList.add('active');
-        });
-    </script>
-    <script src="js/theme.js"></script>
+    <script type="module" src="./firebase-config.js"></script>
+    <script type="module" src="./auth.js"></script>
 </body>
 </html>

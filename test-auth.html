@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Autenticação</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        button { padding: 10px 20px; margin: 5px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Autenticação Firebase</h1>
+    
+    <div id="status"></div>
+    
+    <h2>📝 Registrar Novo Usuário</h2>
+    <form id="registerForm">
+        <div class="form-group">
+            <input type="text" id="regName" placeholder="Nome completo" required>
+        </div>
+        <div class="form-group">
+            <input type="email" id="regEmail" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="regPassword" placeholder="Senha (min 8 chars)" required>
+        </div>
+        <button type="submit">Registrar</button>
+    </form>
+    
+    <h2>🔐 Fazer Login</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <input type="email" id="loginEmail" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+            <input type="password" id="loginPassword" placeholder="Senha" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    
+    <div id="results"></div>
+
+    <script type="module">
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+        
+        function showResult(message, isError = false) {
+            const div = document.createElement('div');
+            div.className = `result ${isError ? 'error' : 'success'}`;
+            div.innerHTML = message;
+            resultsDiv.appendChild(div);
+        }
+        
+        try {
+            statusDiv.innerHTML = '🔄 Carregando Firebase...';
+            
+            // Importar módulos
+            const { app, auth, database } = await import('./firebase-config.js');
+            const { config, sanitizeString, validateEmail } = await import('./config.js');
+            const { 
+                signInWithEmailAndPassword,
+                createUserWithEmailAndPassword 
+            } = await import('https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js');
+            const { ref, set, get } = await import('https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js');
+            
+            statusDiv.innerHTML = '✅ Firebase carregado com sucesso!';
+            
+            // Status da autenticação
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    statusDiv.innerHTML += `<br>🔐 Usuário logado: ${user.email}`;
+                } else {
+                    statusDiv.innerHTML += '<br>🔓 Nenhum usuário logado';
+                }
+            });
+            
+            // Registro
+            document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const name = sanitizeString(document.getElementById('regName').value.trim());
+                const email = document.getElementById('regEmail').value.trim();
+                const password = document.getElementById('regPassword').value;
+                
+                if (!validateEmail(email)) {
+                    showResult('❌ Email inválido', true);
+                    return;
+                }
+                
+                if (password.length < 8) {
+                    showResult('❌ Senha deve ter pelo menos 8 caracteres', true);
+                    return;
+                }
+                
+                try {
+                    showResult('🔄 Registrando usuário...');
+                    
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    // Salvar dados do usuário
+                    const userRef = ref(database, 'users/' + user.uid);
+                    await set(userRef, {
+                        nome: name,
+                        email: email,
+                        totalFerias: 30,
+                        feriasUtilizadas: 0,
+                        historicoFerias: [],
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    showResult(`✅ Usuário registrado com sucesso! UID: ${user.uid}`);
+                    document.getElementById('registerForm').reset();
+                    
+                } catch (error) {
+                    showResult(`❌ Erro no registro: ${error.message}`, true);
+                    console.error('Erro detalhado:', error);
+                }
+            });
+            
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('loginEmail').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                try {
+                    showResult('🔄 Fazendo login...');
+                    
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    // Buscar dados do usuário
+                    const userRef = ref(database, 'users/' + user.uid);
+                    const snapshot = await get(userRef);
+                    const userData = snapshot.val();
+                    
+                    if (userData) {
+                        showResult(`✅ Login bem-sucedido! Bem-vindo, ${userData.nome}`);
+                        showResult(`📊 Dados: ${userData.totalFerias} dias de férias total`);
+                    } else {
+                        showResult(`⚠️ Login ok, mas dados do usuário não encontrados no banco`, true);
+                    }
+                    
+                } catch (error) {
+                    let errorMsg = 'Erro desconhecido';
+                    
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            errorMsg = 'Usuário não encontrado';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMsg = 'Senha incorreta';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMsg = 'Email inválido';
+                            break;
+                        case 'auth/too-many-requests':
+                            errorMsg = 'Muitas tentativas. Tente novamente mais tarde';
+                            break;
+                        default:
+                            errorMsg = error.message;
+                    }
+                    
+                    showResult(`❌ Erro no login: ${errorMsg}`, true);
+                    console.error('Erro detalhado:', error);
+                }
+            });
+            
+        } catch (error) {
+            statusDiv.innerHTML = `❌ Erro ao carregar Firebase: ${error.message}`;
+            console.error('Erro detalhado:', error);
+        }
+    </script>
+</body>
+</html>
